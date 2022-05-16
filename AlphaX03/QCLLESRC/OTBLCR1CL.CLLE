@@ -1,0 +1,698 @@
+000001210610/* ==========================================================================  */
+000002210610/*  OTBLCR1CL                                                                  */
+000003210610/* --------------------------------------------------------------------------  */
+000004210610/*  01/28.09.2020 KP Initial Creation - Create all Admin tables for Role and   */
+000005210610/*                                    permission.                              */
+000006210610/*                                                                             */
+000007210610/*  02/23.10.2020 Table Change       - Add O_BSNCONF table for BSN conflict.   */
+000008210610/*                                                                             */
+000009210610/*  03/26.02.2021 Linkage change     - Added RC, RCMSG & Schema in Linkages so */
+000010210610/*                                     installation script will run for given  */
+000011210610/*                                     Schema and table gets created for       */
+000012210610/*                                     provided Schema                         */
+000013210610/*                                                                             */
+000014210610/*  04/17.03.2021 Linkage change     - Changes to create tables in each SCHEMA */
+000015210610/*                                     Added INMANDANT and INDTALIB in PARM    */
+000016210610/*                                                                             */
+000017210610/*  05/10.06.2021 O_OPTION change    - Removed authentication of O_OPTION table*/
+000018210709/*                                                                             */
+000019210709/*  06/09.07.2021 Removed Tables     - Removed authentication of O_ORDER,      */
+000020210709/*                                     O_PRORD, O_PRORDEL, O_DNEL, O_PRTBKEL,  */
+000021210712/*                                     O_DNELEX, O_LFSDONE and O_BSNCONF       */
+000022210714/*                                   - changed size of &INOUTRCMSG to 100      */
+000023210810/*                                                                             */
+000024210910/*  Rel.2.1.0.0                                                               */
+000025210810/*  07/10.08.2021 Added Tables       - Added O_LFSDONE, O_BSNCONF, O_CURRANGE  */
+000026210810/*                                     and O_PARTKIND table                    */
+000027210901/*                                                                             */
+000028210901/*  08/01.09.2021 Added Tables       - Added O_BA table                        */
+000029220318/*                                                                             */
+000030220318/*  09/18.03.2022 Added Tables       - Added New Inventoty tables,             */
+000031220318/*                                     O_INVKIND, O_INVLIST, O_INVPART,        */
+000032220318/*                                     O_INVCRT, O_INVST, O_INVPRTST, O_INVORG */
+000033210610/* =========================================================================== */
+000034210610             PGM        (&INOUTRC &INOUTRCMSG &INMANDANT &INDTALIB &INSCHEMA)
+000035210610
+000036210610/* --- Declaration of CL program Linkage variable ---*/
+000037210610             DCL        VAR(&INOUTRC)          TYPE(*CHAR) LEN(0005)
+000038210714             DCL        VAR(&INOUTRCMSG)       TYPE(*CHAR) LEN(0100)
+000039210610             DCL        VAR(&INMANDANT)        TYPE(*CHAR) LEN(004) /*KP04*/
+000040210610             DCL        VAR(&INDTALIB)         TYPE(*CHAR) LEN(010) /*KP04*/
+000041210610             DCL        VAR(&INSCHEMA)         TYPE(*CHAR) LEN(010)
+000042210610             DCL        VAR(&USER)             TYPE(*CHAR) LEN(010)
+000043210610
+000044210610/* --- Declaration of COBOL program Linkage variable ---*/
+000045210610             DCL        VAR(&RC)               TYPE(*CHAR) LEN(0005)
+000046210714             DCL        VAR(&RCMSG)            TYPE(*CHAR) LEN(0100)
+000047210610             DCL        VAR(&MANDANT)          TYPE(*CHAR) LEN(004) /*KP04*/
+000048210610             DCL        VAR(&DTALIB)           TYPE(*CHAR) LEN(010) /*KP04*/
+000049210610             DCL        VAR(&SCHEMA)           TYPE(*CHAR) LEN(010)
+000050210713
+000051210713/* --- Declaration of variable to know the Table status ---*/
+000057210713             DCL        VAR(&INTBLLOG)         TYPE(*CHAR) LEN(1)
+000058210713             DCL        VAR(&INSETUP)          TYPE(*CHAR) LEN(1)
+000059210810             DCL        VAR(&INLFSDONE)        TYPE(*CHAR) LEN(1)
+000060210713             DCL        VAR(&INUSER)           TYPE(*CHAR) LEN(1)
+000061210713             DCL        VAR(&INROLE)           TYPE(*CHAR) LEN(1)
+000062210713             DCL        VAR(&INMODULE)         TYPE(*CHAR) LEN(1)
+000063210713             DCL        VAR(&INMODSEC)         TYPE(*CHAR) LEN(1)
+000064210713             DCL        VAR(&INCOMPANY)        TYPE(*CHAR) LEN(1)
+000065210713             DCL        VAR(&INAGENCY)         TYPE(*CHAR) LEN(1)
+000066210713             DCL        VAR(&INUSERRL)         TYPE(*CHAR) LEN(1)
+000067210713             DCL        VAR(&INWRH)            TYPE(*CHAR) LEN(1)
+000068210713             DCL        VAR(&INAGNWRH)         TYPE(*CHAR) LEN(1)
+000069210810             DCL        VAR(&INBSNCONF)        TYPE(*CHAR) LEN(1)
+000070210713             DCL        VAR(&INOPTIONS)        TYPE(*CHAR) LEN(1)
+000071210713             DCL        VAR(&INORDER)          TYPE(*CHAR) LEN(1)
+000072210713             DCL        VAR(&INPRORD)          TYPE(*CHAR) LEN(1)
+000073210713             DCL        VAR(&INPRORDEL)        TYPE(*CHAR) LEN(1)
+000074210713             DCL        VAR(&INDNEL)           TYPE(*CHAR) LEN(1)
+000075210713             DCL        VAR(&INPRTBKEL)        TYPE(*CHAR) LEN(1)
+000076210713             DCL        VAR(&INDNELEX)         TYPE(*CHAR) LEN(1)
+000077210810             DCL        VAR(&INCURRANGE)       TYPE(*CHAR) LEN(1)
+000078210810             DCL        VAR(&INPARTKIND)       TYPE(*CHAR) LEN(1)
+000079210901             DCL        VAR(&INBA)             TYPE(*CHAR) LEN(1)
+000080220308             DCL        VAR(&ININVKIND)        TYPE(*CHAR) LEN(1)
+000081220309             DCL        VAR(&ININVLIST)        TYPE(*CHAR) LEN(1)
+000082220309             DCL        VAR(&ININVPART)        TYPE(*CHAR) LEN(1)
+000083220309             DCL        VAR(&ININVPRTST)       TYPE(*CHAR) LEN(1)
+000084220309             DCL        VAR(&ININVORG)         TYPE(*CHAR) LEN(1)
+000085220309             DCL        VAR(&ININVST)          TYPE(*CHAR) LEN(1)
+000086220309             DCL        VAR(&ININVCRT)         TYPE(*CHAR) LEN(1)
+000087210713
+000088210713/* --- Declaration of variable to log the Table status ---*/
+000089210713             DCL        VAR(&DATAF1)     TYPE(*CHAR) LEN(1)
+000090210713             DCL        VAR(&DATAF2)     TYPE(*CHAR) LEN(1)
+000091210713             DCL        VAR(&DATAF3)     TYPE(*CHAR) LEN(1)
+000092210713             DCL        VAR(&DATAF4)     TYPE(*CHAR) LEN(1)
+000093210713             DCL        VAR(&DATAF5)     TYPE(*CHAR) LEN(1)
+000094210713             DCL        VAR(&DATAF6)     TYPE(*CHAR) LEN(1)
+000095210713             DCL        VAR(&DATAF7)     TYPE(*CHAR) LEN(1)
+000096210713             DCL        VAR(&DATAF8)     TYPE(*CHAR) LEN(1)
+000097210713             DCL        VAR(&DATAF9)     TYPE(*CHAR) LEN(1)
+000098210713             DCL        VAR(&DATAF10)    TYPE(*CHAR) LEN(1)
+000099210713             DCL        VAR(&DATAF11)    TYPE(*CHAR) LEN(1)
+000100210713             DCL        VAR(&DATAF12)    TYPE(*CHAR) LEN(1)
+000101210713             DCL        VAR(&DATAF13)    TYPE(*CHAR) LEN(1)
+000102210713             DCL        VAR(&DATAF14)    TYPE(*CHAR) LEN(1)
+000103210713             DCL        VAR(&DATAF15)    TYPE(*CHAR) LEN(1)
+000104210713             DCL        VAR(&DATAF16)    TYPE(*CHAR) LEN(1)
+000105210713             DCL        VAR(&DATAF17)    TYPE(*CHAR) LEN(1)
+000106210713             DCL        VAR(&DATAF18)    TYPE(*CHAR) LEN(1)
+000107210810             DCL        VAR(&DATAF19)    TYPE(*CHAR) LEN(1)
+000108210810             DCL        VAR(&DATAF20)    TYPE(*CHAR) LEN(1)
+000109210810             DCL        VAR(&DATAF21)    TYPE(*CHAR) LEN(1)
+000110210810             DCL        VAR(&DATAF22)    TYPE(*CHAR) LEN(1)
+000111210901             DCL        VAR(&DATAF23)    TYPE(*CHAR) LEN(1)
+000112220308             DCL        VAR(&DATAF24)    TYPE(*CHAR) LEN(1)
+000113220309             DCL        VAR(&DATAF25)    TYPE(*CHAR) LEN(1)
+000114220309             DCL        VAR(&DATAF26)    TYPE(*CHAR) LEN(1)
+000115220309             DCL        VAR(&DATAF27)    TYPE(*CHAR) LEN(1)
+000116220309             DCL        VAR(&DATAF28)    TYPE(*CHAR) LEN(1)
+000117220309             DCL        VAR(&DATAF29)    TYPE(*CHAR) LEN(1)
+000118220309             DCL        VAR(&DATAF30)    TYPE(*CHAR) LEN(1)
+000119210713
+000120210610/*  System Variables */
+000121210610             DCL        VAR(&LV)         TYPE(*CHAR) LEN(01) VALUE(X'00')
+000122210610             DCL        VAR(&DATAF1)     TYPE(*CHAR) LEN(1)
+000123210610             DCL        VAR(&ERRORSW)    TYPE(*LGL)
+000124210610
+000125210713             RTVJOBA    USER(&USER)
+000126210610             MONMSG     MSGID(CPF0000)  EXEC(GOTO MEBCANCEL)
+000127210610             MONMSG     MSGID(MCH0000)  EXEC(GOTO MEBCANCEL)
+000128210610
+000129210610/* --- Check Linkage and Low value of Mandatory fields ---*/
+000130210610
+000131210610/* &RC  */
+000132210610
+000133210610             CHGVAR     VAR(&RC) VALUE(&INOUTRC)
+000134210610             MONMSG     MSGID(MCH0000) EXEC(DO)
+000135210610                GOTO       ENDE
+000136210610             ENDDO
+000137210610             IF         (%SST(&INOUTRC  1 1) *EQ &LV) THEN(DO)
+000138210610                GOTO       ENDE
+000139210610             ENDDO
+000140210610
+000141210610
+000142210610/* &RCMSG  */
+000143210610
+000144210610             CHGVAR     VAR(&RCMSG) VALUE(&INOUTRCMSG)
+000145210610             MONMSG     MSGID(MCH0000) EXEC(DO)
+000146210610                CHGVAR     &INOUTRC  VALUE('38A04')
+000147210610                GOTO       ENDE
+000148210610             ENDDO
+000149210610             IF         (%SST(&INOUTRCMSG  1 1) *EQ &LV) THEN(DO)
+000150210610                CHGVAR     &INOUTRC  VALUE('38D99')
+000151210610                GOTO       ENDE
+000152210610             ENDDO
+000153210610
+000154210610/*KP04 START1*/
+000155210610/* &MANDANT  */
+000156210610
+000157210610             CHGVAR     VAR(&MANDANT) VALUE(&INMANDANT)
+000158210610             MONMSG     MSGID(MCH0000) EXEC(DO)
+000159210610                CHGVAR     &INOUTRC  VALUE('38A04')
+000160210610                CHGVAR     VAR(&INOUTRCMSG) VALUE('Falsche Anzahl Parameter - MANDANT  fehlt')
+000161210610                GOTO       ENDE
+000162210610             ENDDO
+000163210610             IF         (%SST(&INMANDANT  1 1) *EQ &LV) THEN(DO)
+000164210610                CHGVAR     &INOUTRC  VALUE('38D99')
+000165210610                CHGVAR     VAR(&INOUTRCMSG) VALUE('MANDANT  nicht angegeben')
+000166210610                GOTO       ENDE
+000167210610             ENDDO
+000168210610
+000169210610/* &DTALIB  */
+000170210610
+000171210610             CHGVAR     VAR(&DTALIB) VALUE(&INDTALIB)
+000172210610             MONMSG     MSGID(MCH0000) EXEC(DO)
+000173210610                CHGVAR     &INOUTRC  VALUE('38A04')
+000174210610                CHGVAR     VAR(&INOUTRCMSG) VALUE('Falsche Anzahl Parameter - DTALIB  fehlt')
+000175210610                GOTO       ENDE
+000176210610             ENDDO
+000177210610             IF         (%SST(&INDTALIB  1 1) *EQ &LV) THEN(DO)
+000178210610                CHGVAR     &INOUTRC  VALUE('38D99')
+000179210610                CHGVAR     VAR(&INOUTRCMSG) VALUE('DTALIB  nicht angegeben')
+000180210610                GOTO       ENDE
+000181210610             ENDDO
+000182210610
+000183210610/*KP04 END1*/
+000184210610/* &SCHEMA  */
+000185210610
+000186210610             CHGVAR     VAR(&SCHEMA) VALUE(&INSCHEMA)
+000187210610             MONMSG     MSGID(MCH0000) EXEC(DO)
+000188210610                CHGVAR     &INOUTRC  VALUE('38A04')
+000189210610                CHGVAR     VAR(&INOUTRCMSG) VALUE('Falsche Anzahl Parameter - SCHEMA  fehlt')
+000190210610                GOTO       ENDE
+000191210610             ENDDO
+000192210610             IF         (%SST(&INSCHEMA  1 1) *EQ &LV) THEN(DO)
+000193210610                CHGVAR     &INOUTRC  VALUE('38D99')
+000194210610                CHGVAR     VAR(&INOUTRCMSG) VALUE('SCHEMA  nicht angegeben')
+000195210610                GOTO       ENDE
+000196210610             ENDDO
+000197210610
+000198210610 OCRTTBL:
+000199210610             CHGCURLIB  CURLIB(&SCHEMA)
+000200210610             MONMSG     MSGID(CPF2110) EXEC(GOTO ENDE)
+000201210713
+000202210713/*   Check O_TBLLOG table */
+000203210713             $CHKF      FILE(&SCHEMA/O_TBLLOG) RESULT(&DATAF1)
+000204210713             IF         (&DATAF1 *EQ 'N') THEN(DO)
+000205210713                CHGVAR     &INTBLLOG  VALUE('N')
+000206210713             ENDDO
+000207210713
+000208210713/*   Check O_SETUP table */
+000209210713             $CHKF      FILE(&SCHEMA/O_SETUP) RESULT(&DATAF2)
+000210210713             IF         (&DATAF2 *EQ 'N') THEN(DO)
+000211210713                CHGVAR     &INSETUP  VALUE('N')
+000212210713             ENDDO
+000213210713
+000214210713/*   Check O_USER table */
+000215210713             $CHKF      FILE(&SCHEMA/O_USER) RESULT(&DATAF3)
+000216210713             IF         (&DATAF3 *EQ 'N') THEN(DO)
+000217210713                CHGVAR     &INUSER  VALUE('N')
+000218210713             ENDDO
+000219210713
+000220210713/*   Check O_ROLE  table */
+000221210713             $CHKF      FILE(&SCHEMA/O_ROLE) RESULT(&DATAF4)
+000222210713             IF         (&DATAF4 *EQ 'N') THEN(DO)
+000223210713                CHGVAR     &INROLE   VALUE('N')
+000224210713             ENDDO
+000225210713
+000226210713/*   Check O_MODULE table */
+000227210713             $CHKF      FILE(&SCHEMA/O_MODULE) RESULT(&DATAF5)
+000228210713             IF         (&DATAF5 *EQ 'N') THEN(DO)
+000229210713                CHGVAR     &INMODULE  VALUE('N')
+000230210713             ENDDO
+000231210713
+000232210713/*   Check O_MODSEC table */
+000233210713             $CHKF      FILE(&SCHEMA/O_MODSEC) RESULT(&DATAF6)
+000234210713             IF         (&DATAF6 *EQ 'N') THEN(DO)
+000235210713                CHGVAR     &INMODSEC  VALUE('N')
+000236210713             ENDDO
+000237210713
+000238210713/*   Check O_COMPANY table */
+000239210713             $CHKF      FILE(&SCHEMA/O_COMPANY) RESULT(&DATAF7)
+000240210713             IF         (&DATAF7 *EQ 'N') THEN(DO)
+000241210713                CHGVAR     &INCOMPANY  VALUE('N')
+000242210713             ENDDO
+000243210713
+000244210713/*   Check O_AGENCY table */
+000245210713             $CHKF      FILE(&SCHEMA/O_AGENCY) RESULT(&DATAF8)
+000246210713             IF         (&DATAF8 *EQ 'N') THEN(DO)
+000247210713                CHGVAR     &INAGENCY  VALUE('N')
+000248210713             ENDDO
+000249210713
+000250210713/*   Check O_USERRL table */
+000251210713             $CHKF      FILE(&SCHEMA/O_USERRL) RESULT(&DATAF9)
+000252210713             IF         (&DATAF9 *EQ 'N') THEN(DO)
+000253210713                CHGVAR     &INUSERRL  VALUE('N')
+000254210713             ENDDO
+000255210713
+000256210713/*   Check O_WRH table */
+000257210713             $CHKF      FILE(&SCHEMA/O_WRH) RESULT(&DATAF10)
+000258210713             IF         (&DATAF10 *EQ 'N') THEN(DO)
+000259210713                CHGVAR     &INWRH  VALUE('N')
+000260210713             ENDDO
+000261210713
+000262210713/*   Check O_AGNWRH table */
+000263210713             $CHKF      FILE(&SCHEMA/O_AGNWRH) RESULT(&DATAF11)
+000264210713             IF         (&DATAF11 *EQ 'N') THEN(DO)
+000265210713                CHGVAR     &INAGNWRH  VALUE('N')
+000266210713             ENDDO
+000267210713
+000268210713/*   Check O_OPTIONS table */
+000269210713             $CHKF      FILE(&SCHEMA/O_OPTIONS) RESULT(&DATAF12)
+000270210713             IF         (&DATAF12 *EQ 'N') THEN(DO)
+000271210713                CHGVAR     &INOPTIONS  VALUE('N')
+000272210713             ENDDO
+000273210713
+000274210713/*   Check O_ORDER table */
+000275210713             $CHKF      FILE(&SCHEMA/O_ORDER) RESULT(&DATAF13)
+000276210713             IF         (&DATAF13 *EQ 'N') THEN(DO)
+000277210713                CHGVAR     &INORDER  VALUE('N')
+000278210713             ENDDO
+000279210713
+000280210713/*   Check O_PRORD  table */
+000281210713             $CHKF      FILE(&SCHEMA/O_PRORD) RESULT(&DATAF14)
+000282210713             IF         (&DATAF14 *EQ 'N') THEN(DO)
+000283210713                CHGVAR     &INPRORD  VALUE('N')
+000284210713             ENDDO
+000285210713
+000286210713/*   Check O_PRORDEL table */
+000287210713             $CHKF      FILE(&SCHEMA/O_PRORDEL) RESULT(&DATAF15)
+000288210713             IF         (&DATAF15 *EQ 'N') THEN(DO)
+000289210713                CHGVAR     &INPRORDEL  VALUE('N')
+000290210713             ENDDO
+000291210713
+000292210713/*   Check O_DNEL table */
+000293210713             $CHKF      FILE(&SCHEMA/O_DNEL) RESULT(&DATAF16)
+000294210713             IF         (&DATAF16 *EQ 'N') THEN(DO)
+000295210713                CHGVAR     &INDNEL  VALUE('N')
+000296210713             ENDDO
+000297210713
+000298210713/*   Check O_PRTBKEL table */
+000299210713             $CHKF      FILE(&SCHEMA/O_PRTBKEL) RESULT(&DATAF17)
+000300210713             IF         (&DATAF17 *EQ 'N') THEN(DO)
+000301210713                CHGVAR     &INPRTBKEL  VALUE('N')
+000302210713             ENDDO
+000303210713
+000304210713/*   Check O_DNELEX table */
+000305210713             $CHKF      FILE(&SCHEMA/O_DNELEX) RESULT(&DATAF18)
+000306210713             IF         (&DATAF18 *EQ 'N') THEN(DO)
+000307210713                CHGVAR     &INDNELEX  VALUE('N')
+000308210713             ENDDO
+000309210713
+000310210810/*KP07START01*/
+000311210810/*   Check O_LFSDONE table */
+000312210810             $CHKF      FILE(&SCHEMA/O_LFSDONE) RESULT(&DATAF19)
+000313210810             IF         (&DATAF19 *EQ 'N') THEN(DO)
+000314210810                CHGVAR     &INLFSDONE  VALUE('N')
+000315210810             ENDDO
+000316210810
+000317210810/*   Check O_BSNCONF table */
+000318210810             $CHKF      FILE(&SCHEMA/O_BSNCONF) RESULT(&DATAF20)
+000319210810             IF         (&DATAF20 *EQ 'N') THEN(DO)
+000320210810                CHGVAR     &INBSNCONF  VALUE('N')
+000321210810             ENDDO
+000322210810
+000323210810/*   Check O_CURRANGE table */
+000324210810             $CHKF      FILE(&SCHEMA/O_CURRANGE) RESULT(&DATAF21)
+000325210810             IF         (&DATAF21 *EQ 'N') THEN(DO)
+000326210810                CHGVAR     &INCURRANGE  VALUE('N')
+000327210810             ENDDO
+000328210810
+000329210810/*   Check O_PARTKIND table */
+000330210810             $CHKF      FILE(&SCHEMA/O_PARTKIND) RESULT(&DATAF22)
+000331210810             IF         (&DATAF22 *EQ 'N') THEN(DO)
+000332210810                CHGVAR     &INPARTKIND  VALUE('N')
+000333210810             ENDDO
+000334210901
+000335210901/*   Check O_BA table */
+000336210901             $CHKF      FILE(&SCHEMA/O_BA) RESULT(&DATAF23)
+000337210901             IF         (&DATAF23 *EQ 'N') THEN(DO)
+000338210901                CHGVAR     &INBA  VALUE('N')
+000339210901             ENDDO
+000340210901
+000341210810/*KP07END01*/
+000342220308
+000343220308/*KP09START01*/
+000344220308/*   Check O_INVKIND table */
+000345220308             $CHKF      FILE(&SCHEMA/O_INVKIND) RESULT(&DATAF24)
+000346220308             IF         (&DATAF24 *EQ 'N') THEN(DO)
+000347220308                CHGVAR     &ININVKIND  VALUE('N')
+000348220308             ENDDO
+000349220308
+000350220309/*   Check O_INVLIST table */
+000351220309             $CHKF      FILE(&SCHEMA/O_INVLIST) RESULT(&DATAF25)
+000352220309             IF         (&DATAF25 *EQ 'N') THEN(DO)
+000353220309                CHGVAR     &ININVLIST  VALUE('N')
+000354220309             ENDDO
+000355220309
+000356220309/*   Check O_INVPART table */
+000357220309             $CHKF      FILE(&SCHEMA/O_INVPART) RESULT(&DATAF26)
+000358220309             IF         (&DATAF26 *EQ 'N') THEN(DO)
+000359220309                CHGVAR     &ININVPART  VALUE('N')
+000360220309             ENDDO
+000361220309
+000362220309/*   Check O_INVPRTST table */
+000363220309             $CHKF      FILE(&SCHEMA/O_INVPRTST) RESULT(&DATAF27)
+000364220309             IF         (&DATAF27 *EQ 'N') THEN(DO)
+000365220309                CHGVAR     &ININVPRTST  VALUE('N')
+000366220309             ENDDO
+000367220309
+000368220309/*   Check O_INVORG table */
+000369220309             $CHKF      FILE(&SCHEMA/O_INVORG) RESULT(&DATAF28)
+000370220309             IF         (&DATAF28 *EQ 'N') THEN(DO)
+000371220309                CHGVAR     &ININVORG  VALUE('N')
+000372220309             ENDDO
+000373220309
+000374220309/*   Check O_INVST table */
+000375220309             $CHKF      FILE(&SCHEMA/O_INVST) RESULT(&DATAF29)
+000376220309             IF         (&DATAF29 *EQ 'N') THEN(DO)
+000377220309                CHGVAR     &ININVST  VALUE('N')
+000378220309             ENDDO
+000379220309
+000380220309/*   Check O_INVCRT table */
+000381220309             $CHKF      FILE(&SCHEMA/O_INVCRT) RESULT(&DATAF30)
+000382220309             IF         (&DATAF30 *EQ 'N') THEN(DO)
+000383220309                CHGVAR     &ININVCRT  VALUE('N')
+000384220309             ENDDO
+000385220309
+000386210810
+000387220309             CALL       PGM(OTBLCR1)  PARM(&RC &RCMSG &USER &INTBLLOG &INSETUP &INLFSDONE &INUSER &INROLE +
+000388220309                          &INMODULE &INMODSEC &INCOMPANY &INAGENCY &INUSERRL &INWRH &INAGNWRH &INBSNCONF +
+000389220309                          &INOPTIONS &INORDER &INPRORD &INPRORDEL &INDNEL &INPRTBKEL &INDNELEX &INCURRANGE +
+000390220309                          &INPARTKIND &INBA &ININVKIND &ININVLIST &ININVPART &ININVPRTST &ININVORG &ININVST +
+000391220309                          &ININVCRT)
+000392210610
+000393210714             CHGVAR     &INOUTRC            VALUE(&RC)
+000394210714             CHGVAR     &INOUTRCMSG         VALUE(&RCMSG)
+000395210714
+000396210810             IF         (&INOUTRC *NE ' ')    THEN(DO)
+000397210714                GOTO       CMDLBL(ENDE)
+000398210714             ENDDO
+000399210714
+000400210610/* KP04 START2*/
+000401210610             IF         (&MANDANT *EQ '    ') THEN(DO)
+000402210610                CHGVAR     &DATAF1  VALUE('N')
+000403210610                GOTO       RZNO
+000404210610             ENDDO
+000405210610
+000406210610 RZYES:
+000407210610             $CHKF      FILE(*libl/$rz) RESULT(&DATAF1)
+000408210610             IF         COND(&DATAF1 *eq 'Y') THEN(DO)
+000409210810
+000410210810                IF         (&INTBLLOG *EQ 'N') THEN(DO)
+000411210810                   GRTOBJAUT  OBJ(&SCHEMA/O_TBLLOG)  OBJTYPE(*all) USER(*public) AUT(*exclude)
+000412210810                   MONMSG     MSGID(CPF0000)
+000413210810                   GRTOBJAUT  OBJ(&SCHEMA/O_TBLLOG)  OBJTYPE(*all) USER(&MANDANT) AUT(*ALL)
+000414210810                   MONMSG     MSGID(CPF0000)
+000415210810                ENDDO
+000416210810
+000417210810                IF         (&INSETUP *EQ 'N') THEN(DO)
+000418210810                   GRTOBJAUT  OBJ(&SCHEMA/O_SETUP)   OBJTYPE(*all) USER(*public) AUT(*exclude)
+000419210810                   MONMSG     MSGID(CPF0000)
+000420210810                   GRTOBJAUT  OBJ(&SCHEMA/O_SETUP)   OBJTYPE(*all) USER(&MANDANT) AUT(*ALL)
+000421210810                   MONMSG     MSGID(CPF0000)
+000422210810                ENDDO
+000423210810
+000424210810                IF         (&INLFSDONE *EQ 'N') THEN(DO)
+000425210810                   GRTOBJAUT  OBJ(&SCHEMA/O_LFSDONE) OBJTYPE(*all) USER(*public) AUT(*exclude)
+000426210810                   MONMSG     MSGID(CPF0000)
+000427210810                   GRTOBJAUT  OBJ(&SCHEMA/O_LFSDONE) OBJTYPE(*all) USER(&MANDANT) AUT(*ALL)
+000428210810                   MONMSG     MSGID(CPF0000)
+000429210810                ENDDO
+000430210810
+000431210810                IF         (&INUSER *EQ 'N') THEN(DO)
+000432210810                   GRTOBJAUT  OBJ(&SCHEMA/O_USER)    OBJTYPE(*all) USER(*public) AUT(*exclude)
+000433210810                   MONMSG     MSGID(CPF0000)
+000434210810                   GRTOBJAUT  OBJ(&SCHEMA/O_USER)    OBJTYPE(*all) USER(&MANDANT) AUT(*ALL)
+000435210810                   MONMSG     MSGID(CPF0000)
+000436210810                ENDDO
+000437210810
+000438210810                IF         (&INROLE *EQ 'N') THEN(DO)
+000439210810                   GRTOBJAUT  OBJ(&SCHEMA/O_ROLE)    OBJTYPE(*all) USER(*public) AUT(*exclude)
+000440210810                   MONMSG     MSGID(CPF0000)
+000441210810                   GRTOBJAUT  OBJ(&SCHEMA/O_ROLE)    OBJTYPE(*all) USER(&MANDANT) AUT(*ALL)
+000442210810                   MONMSG     MSGID(CPF0000)
+000443210810                ENDDO
+000444210810
+000445210810                IF         (&INMODULE *EQ 'N') THEN(DO)
+000446210810                   GRTOBJAUT  OBJ(&SCHEMA/O_MODULE)  OBJTYPE(*all) USER(*public) AUT(*exclude)
+000447210810                   MONMSG     MSGID(CPF0000)
+000448210810                   GRTOBJAUT  OBJ(&SCHEMA/O_MODULE)  OBJTYPE(*all) USER(&MANDANT) AUT(*ALL)
+000449210810                   MONMSG     MSGID(CPF0000)
+000450210810                ENDDO
+000451210810
+000452210810                IF         (&INMODSEC *EQ 'N') THEN(DO)
+000453210810                   GRTOBJAUT  OBJ(&SCHEMA/O_MODSEC)  OBJTYPE(*all) USER(*public) AUT(*exclude)
+000454210810                   MONMSG     MSGID(CPF0000)
+000455210810                   GRTOBJAUT  OBJ(&SCHEMA/O_MODSEC)  OBJTYPE(*all) USER(&MANDANT) AUT(*ALL)
+000456210810                   MONMSG     MSGID(CPF0000)
+000457210810                ENDDO
+000458210810
+000459210810                IF         (&INCOMPANY *EQ 'N') THEN(DO)
+000460210810                   GRTOBJAUT  OBJ(&SCHEMA/O_COMPANY) OBJTYPE(*all) USER(*public) AUT(*exclude)
+000461210810                   MONMSG     MSGID(CPF0000)
+000462210810                   GRTOBJAUT  OBJ(&SCHEMA/O_COMPANY) OBJTYPE(*all) USER(&MANDANT) AUT(*ALL)
+000463210810                   MONMSG     MSGID(CPF0000)
+000464210810                ENDDO
+000465210810
+000466210810                IF         (&INAGENCY *EQ 'N') THEN(DO)
+000467210810                   GRTOBJAUT  OBJ(&SCHEMA/O_AGENCY)  OBJTYPE(*all) USER(*public) AUT(*exclude)
+000468210810                   MONMSG     MSGID(CPF0000)
+000469210810                   GRTOBJAUT  OBJ(&SCHEMA/O_AGENCY)  OBJTYPE(*all) USER(&MANDANT) AUT(*ALL)
+000470210810                   MONMSG     MSGID(CPF0000)
+000471210810                ENDDO
+000472210810
+000473210810                IF         (&INUSERRL *EQ 'N') THEN(DO)
+000474210810                   GRTOBJAUT  OBJ(&SCHEMA/O_USERRL)  OBJTYPE(*all) USER(*public) AUT(*exclude)
+000475210810                   MONMSG     MSGID(CPF0000)
+000476210810                   GRTOBJAUT  OBJ(&SCHEMA/O_USERRL)  OBJTYPE(*all) USER(&MANDANT) AUT(*ALL)
+000477210810                   MONMSG     MSGID(CPF0000)
+000478210810                ENDDO
+000479210810
+000480210810                IF         (&INWRH *EQ 'N') THEN(DO)
+000481210810                   GRTOBJAUT  OBJ(&SCHEMA/O_WRH)     OBJTYPE(*all) USER(*public) AUT(*exclude)
+000482210810                   MONMSG     MSGID(CPF0000)
+000483210810                   GRTOBJAUT  OBJ(&SCHEMA/O_WRH)     OBJTYPE(*all) USER(&MANDANT) AUT(*ALL)
+000484210810                   MONMSG     MSGID(CPF0000)
+000485210810                ENDDO
+000486210810
+000487210810                IF         (&INAGNWRH *EQ 'N') THEN(DO)
+000488210810                   GRTOBJAUT  OBJ(&SCHEMA/O_AGNWRH)  OBJTYPE(*all) USER(*public) AUT(*exclude)
+000489210810                   MONMSG     MSGID(CPF0000)
+000490210810                   GRTOBJAUT  OBJ(&SCHEMA/O_AGNWRH)  OBJTYPE(*all) USER(&MANDANT) AUT(*ALL)
+000491210810                   MONMSG     MSGID(CPF0000)
+000492210810                ENDDO
+000493210810
+000494210810                IF         (&INBSNCONF *EQ 'N') THEN(DO)
+000495210810                   GRTOBJAUT  OBJ(&SCHEMA/O_BSNCONF)  OBJTYPE(*all) USER(*public) AUT(*exclude)
+000496210810                   MONMSG     MSGID(CPF0000)
+000497210810                   GRTOBJAUT  OBJ(&SCHEMA/O_BSNCONF)  OBJTYPE(*all) USER(&MANDANT) AUT(*ALL)
+000498210810                   MONMSG     MSGID(CPF0000)
+000499210810                ENDDO
+000500210810
+000501210810                IF         (&INCURRANGE *EQ 'N') THEN(DO)
+000502210810                   GRTOBJAUT  OBJ(&SCHEMA/O_CURRANGE) OBJTYPE(*all) USER(*public) AUT(*exclude)
+000503210810                   MONMSG     MSGID(CPF0000)
+000504210810                   GRTOBJAUT  OBJ(&SCHEMA/O_CURRANGE) OBJTYPE(*all) USER(&MANDANT) AUT(*ALL)
+000505210810                   MONMSG     MSGID(CPF0000)
+000506210810                ENDDO
+000507210810
+000508210810                IF         (&INPARTKIND *EQ 'N') THEN(DO)
+000509210810                   GRTOBJAUT  OBJ(&SCHEMA/O_PARTKIND) OBJTYPE(*all) USER(*public) AUT(*exclude)
+000510210810                   MONMSG     MSGID(CPF0000)
+000511210810                   GRTOBJAUT  OBJ(&SCHEMA/O_PARTKIND) OBJTYPE(*all) USER(&MANDANT) AUT(*ALL)
+000512210810                   MONMSG     MSGID(CPF0000)
+000513210810                ENDDO
+000514210901
+000515210901                IF         (&INBA *EQ 'N') THEN(DO)
+000516210901                   GRTOBJAUT  OBJ(&SCHEMA/O_BA) OBJTYPE(*all) USER(*public) AUT(*exclude)
+000517210901                   MONMSG     MSGID(CPF0000)
+000518210901                   GRTOBJAUT  OBJ(&SCHEMA/O_BA) OBJTYPE(*all) USER(&MANDANT) AUT(*ALL)
+000519210901                   MONMSG     MSGID(CPF0000)
+000520210901                ENDDO
+000521220318
+000522220318                IF         (&ININVKIND *EQ 'N') THEN(DO)
+000523220318                   GRTOBJAUT  OBJ(&SCHEMA/O_INVKIND) OBJTYPE(*all) USER(*public) AUT(*exclude)
+000524220318                   MONMSG     MSGID(CPF0000)
+000525220318                   GRTOBJAUT  OBJ(&SCHEMA/O_INVKIND) OBJTYPE(*all) USER(&MANDANT) AUT(*ALL)
+000526220318                   MONMSG     MSGID(CPF0000)
+000527220318                ENDDO
+000528220318
+000529220318                IF         (&ININVLIST *EQ 'N') THEN(DO)
+000530220318                   GRTOBJAUT  OBJ(&SCHEMA/O_INVLIST) OBJTYPE(*all) USER(*public) AUT(*exclude)
+000531220318                   MONMSG     MSGID(CPF0000)
+000532220318                   GRTOBJAUT  OBJ(&SCHEMA/O_INVLIST) OBJTYPE(*all) USER(&MANDANT) AUT(*ALL)
+000533220318                   MONMSG     MSGID(CPF0000)
+000534220318                ENDDO
+000535220318
+000536220318                IF         (&ININVPART *EQ 'N') THEN(DO)
+000537220318                   GRTOBJAUT  OBJ(&SCHEMA/O_INVPART) OBJTYPE(*all) USER(*public) AUT(*exclude)
+000538220318                   MONMSG     MSGID(CPF0000)
+000539220318                   GRTOBJAUT  OBJ(&SCHEMA/O_INVPART) OBJTYPE(*all) USER(&MANDANT) AUT(*ALL)
+000540220318                   MONMSG     MSGID(CPF0000)
+000541220318                ENDDO
+000542220318
+000543220318                IF         (&ININVPRTST *EQ 'N') THEN(DO)
+000544220318                   GRTOBJAUT  OBJ(&SCHEMA/O_INVPRTST) OBJTYPE(*all) USER(*public) AUT(*exclude)
+000545220318                   MONMSG     MSGID(CPF0000)
+000546220318                   GRTOBJAUT  OBJ(&SCHEMA/O_INVPRTST) OBJTYPE(*all) USER(&MANDANT) AUT(*ALL)
+000547220318                   MONMSG     MSGID(CPF0000)
+000548220318                ENDDO
+000549220318
+000550220318                IF         (&ININVORG *EQ 'N') THEN(DO)
+000551220318                   GRTOBJAUT  OBJ(&SCHEMA/O_INVORG) OBJTYPE(*all) USER(*public) AUT(*exclude)
+000552220318                   MONMSG     MSGID(CPF0000)
+000553220318                   GRTOBJAUT  OBJ(&SCHEMA/O_INVORG) OBJTYPE(*all) USER(&MANDANT) AUT(*ALL)
+000554220318                   MONMSG     MSGID(CPF0000)
+000555220318                ENDDO
+000556220318
+000557220318                IF         (&ININVST *EQ 'N') THEN(DO)
+000558220318                   GRTOBJAUT  OBJ(&SCHEMA/O_INVST) OBJTYPE(*all) USER(*public) AUT(*exclude)
+000559220318                   MONMSG     MSGID(CPF0000)
+000560220318                   GRTOBJAUT  OBJ(&SCHEMA/O_INVST) OBJTYPE(*all) USER(&MANDANT) AUT(*ALL)
+000561220318                   MONMSG     MSGID(CPF0000)
+000562220318                ENDDO
+000563220318
+000564220318                IF         (&ININVCRT *EQ 'N') THEN(DO)
+000565220318                   GRTOBJAUT  OBJ(&SCHEMA/O_INVCRT) OBJTYPE(*all) USER(*public) AUT(*exclude)
+000566220318                   MONMSG     MSGID(CPF0000)
+000567220318                   GRTOBJAUT  OBJ(&SCHEMA/O_INVCRT) OBJTYPE(*all) USER(&MANDANT) AUT(*ALL)
+000568220318                   MONMSG     MSGID(CPF0000)
+000569220318                ENDDO
+000570210610             ENDDO
+000571210610
+000572210610
+000573210610             $CHKF      FILE(*libl/$rz) RESULT(&DATAF1)
+000574210610 RZNO:       IF         COND(&DATAF1 *eq 'N') THEN(DO)
+000575210810                IF         (&INTBLLOG *EQ 'N') THEN(DO)
+000576210810                   GRTOBJAUT  OBJ(&SCHEMA/O_TBLLOG)  OBJTYPE(*all) USER(*public) AUT(*all)
+000577210810                   MONMSG     MSGID(CPF0000)
+000578210810                ENDDO
+000579210810
+000580210810                IF         (&INSETUP *EQ 'N') THEN(DO)
+000581210810                   GRTOBJAUT  OBJ(&SCHEMA/O_SETUP)   OBJTYPE(*all) USER(*public) AUT(*all)
+000582210810                   MONMSG     MSGID(CPF0000)
+000583210810                ENDDO
+000584210810
+000585210810                IF         (&INLFSDONE *EQ 'N') THEN(DO)
+000586210810                   GRTOBJAUT  OBJ(&SCHEMA/O_LFSDONE) OBJTYPE(*all) USER(*public) AUT(*all)
+000587210810                   MONMSG     MSGID(CPF0000)
+000588210810                ENDDO
+000589210810
+000590210810                IF         (&INUSER  *EQ 'N') THEN(DO)
+000591210810                   GRTOBJAUT  OBJ(&SCHEMA/O_USER)    OBJTYPE(*all) USER(*public) AUT(*all)
+000592210810                   MONMSG     MSGID(CPF0000)
+000593210810                ENDDO
+000594210810
+000595210810                IF         (&INROLE *EQ 'N') THEN(DO)
+000596210810                   GRTOBJAUT  OBJ(&SCHEMA/O_ROLE)    OBJTYPE(*all) USER(*public) AUT(*all)
+000597210810                   MONMSG     MSGID(CPF0000)
+000598210810                ENDDO
+000599210810
+000600210810                IF         (&INMODULE *EQ 'N') THEN(DO)
+000601210810                   GRTOBJAUT  OBJ(&SCHEMA/O_MODULE)  OBJTYPE(*all) USER(*public) AUT(*all)
+000602210810                   MONMSG     MSGID(CPF0000)
+000603210810                ENDDO
+000604210810
+000605210810                IF         (&INMODSEC *EQ 'N') THEN(DO)
+000606210810                   GRTOBJAUT  OBJ(&SCHEMA/O_MODSEC)  OBJTYPE(*all) USER(*public) AUT(*all)
+000607210810                   MONMSG     MSGID(CPF0000)
+000608210810                ENDDO
+000609210810
+000610210810                IF         (&INCOMPANY *EQ 'N') THEN(DO)
+000611210810                   GRTOBJAUT  OBJ(&SCHEMA/O_COMPANY) OBJTYPE(*all) USER(*public) AUT(*all)
+000612210810                   MONMSG     MSGID(CPF0000)
+000613210810                ENDDO
+000614210810
+000615210810                IF         (&INAGENCY *EQ 'N') THEN(DO)
+000616210810                   GRTOBJAUT  OBJ(&SCHEMA/O_AGENCY)  OBJTYPE(*all) USER(*public) AUT(*all)
+000617210810                   MONMSG     MSGID(CPF0000)
+000618210810                ENDDO
+000619210810
+000620210810                IF         (&INUSERRL *EQ 'N') THEN(DO)
+000621210810                   GRTOBJAUT  OBJ(&SCHEMA/O_USERRL)  OBJTYPE(*all) USER(*public) AUT(*all)
+000622210810                   MONMSG     MSGID(CPF0000)
+000623210810                ENDDO
+000624210810
+000625210810                IF         (&INWRH *EQ 'N') THEN(DO)
+000626210810                   GRTOBJAUT  OBJ(&SCHEMA/O_WRH)     OBJTYPE(*all) USER(*public) AUT(*all)
+000627210810                   MONMSG     MSGID(CPF0000)
+000628210810                ENDDO
+000629210810
+000630210810                IF         (&INAGNWRH *EQ 'N') THEN(DO)
+000631210810                   GRTOBJAUT  OBJ(&SCHEMA/O_AGNWRH)  OBJTYPE(*all) USER(*public) AUT(*all)
+000632210810                   MONMSG     MSGID(CPF0000)
+000633210810                ENDDO
+000634210810
+000635210810                IF         (&INBSNCONF *EQ 'N') THEN(DO)
+000636210810                   GRTOBJAUT  OBJ(&SCHEMA/O_BSNCONF)  OBJTYPE(*all) USER(*public) AUT(*all)
+000637210810                   MONMSG     MSGID(CPF0000)
+000638210810                ENDDO
+000639210810
+000640210810                IF         (&INCURRANGE *EQ 'N') THEN(DO)
+000641210810                   GRTOBJAUT  OBJ(&SCHEMA/O_CURRANGE) OBJTYPE(*all) USER(*public) AUT(*all)
+000642210810                   MONMSG     MSGID(CPF0000)
+000643210810                ENDDO
+000644210810
+000645210810                IF         (&INPARTKIND *EQ 'N') THEN(DO)
+000646210810                   GRTOBJAUT  OBJ(&SCHEMA/O_PARTKIND) OBJTYPE(*all) USER(*public) AUT(*all)
+000647210810                   MONMSG     MSGID(CPF0000)
+000648210810                ENDDO
+000649210901
+000650210901                IF         (&INBA *EQ 'N') THEN(DO)
+000651210901                   GRTOBJAUT  OBJ(&SCHEMA/O_BA) OBJTYPE(*all) USER(*public) AUT(*all)
+000652210901                   MONMSG     MSGID(CPF0000)
+000653210901                ENDDO
+000654220318
+000655220318                IF         (&ININVKIND *EQ 'N') THEN(DO)
+000656220318                   GRTOBJAUT  OBJ(&SCHEMA/O_INVKIND) OBJTYPE(*all) USER(*public) AUT(*all)
+000657220318                   MONMSG     MSGID(CPF0000)
+000658220318                ENDDO
+000659220318
+000660220318                IF         (&ININVLIST *EQ 'N') THEN(DO)
+000661220318                   GRTOBJAUT  OBJ(&SCHEMA/O_INVLIST) OBJTYPE(*all) USER(*public) AUT(*all)
+000662220318                   MONMSG     MSGID(CPF0000)
+000663220318                ENDDO
+000664220318
+000665220318                IF         (&ININVPART *EQ 'N') THEN(DO)
+000666220318                   GRTOBJAUT  OBJ(&SCHEMA/O_INVPART) OBJTYPE(*all) USER(*public) AUT(*all)
+000667220318                   MONMSG     MSGID(CPF0000)
+000668220318                ENDDO
+000669220318
+000670220318                IF         (&ININVPRTST *EQ 'N') THEN(DO)
+000671220318                   GRTOBJAUT  OBJ(&SCHEMA/O_INVPRTST) OBJTYPE(*all) USER(*public) AUT(*all)
+000672220318                   MONMSG     MSGID(CPF0000)
+000673220318                ENDDO
+000674220318
+000675220318                IF         (&ININVORG *EQ 'N') THEN(DO)
+000676220318                   GRTOBJAUT  OBJ(&SCHEMA/O_INVORG) OBJTYPE(*all) USER(*public) AUT(*all)
+000677220318                   MONMSG     MSGID(CPF0000)
+000678220318                ENDDO
+000679220318
+000680220318                IF         (&ININVST *EQ 'N') THEN(DO)
+000681220318                   GRTOBJAUT  OBJ(&SCHEMA/O_INVST) OBJTYPE(*all) USER(*public) AUT(*all)
+000682220318                   MONMSG     MSGID(CPF0000)
+000683220318                ENDDO
+000684220318
+000685220318                IF         (&ININVCRT *EQ 'N') THEN(DO)
+000686220318                   GRTOBJAUT  OBJ(&SCHEMA/O_INVCRT) OBJTYPE(*all) USER(*public) AUT(*all)
+000687220318                   MONMSG     MSGID(CPF0000)
+000688220318                ENDDO
+000689210610             ENDDO
+000690210610
+000691210610/* KP04 END2*/
+000692210610 PERMISNE:
+000693210610
+000694210610             GOTO       CMDLBL(ENDE)
+000695210610
+000696210610/* -------------------------------------------------------------------------- */
+000697210610 MEBCANCEL:
+000698210610             IF         &ERRORSW SNDPGMMSG MSGID(CPF9999) MSGF(QCPFMSG) MSGTYPE(*ESCAPE)
+000699210610             CHGVAR     &ERRORSW '1'
+000700210610             CALL       $CLPERRCL
+000701210610 ENDE:
+000702210610             RETURN
+000703210610             ENDPGM

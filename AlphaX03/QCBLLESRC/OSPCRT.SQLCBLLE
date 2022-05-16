@@ -1,0 +1,262 @@
+000100220411       PROCESS QUOTE
+000101220411
+000102220411       COPY PROZESS IN QCBLLECPY.
+000103220411
+000104220411       IDENTIFICATION DIVISION.
+000105220411       PROGRAM-ID.    OSPCRT.
+000106220411
+000107220411       AUTHOR.        Kalyani Deshkar
+000108220411
+000109220411       DATE-COMPILED.
+000110220411      *----------------------------------------------------------------*
+000111220411      * -- SQL  ---  SQL  ---  SQL  ---  SQL  ---  SQL  ---  SQL  ---  *
+000112220411      *----------------------------------------------------------------*
+000113220411      *               PROGRAMM-BESCHREIBUNG                            *
+000114220411      *                                                                *
+000115220411      *    PROJEKT      : AlphaX                                       *
+000116220411      *    PROGRAM-NAME : OSPCRT                                       *
+000117220411      *    TITEL        : Get MANDANT, DTALIB and SCHEMA.              *
+000118220411      *                                                                *
+000119220411      *    AUTOR        : Kalyani Deshkar.                             *
+000120220411      *    Create Date  : 11.04.2022.                                  *
+000121220411      *    DESCRIPTION  : Get MANDANT, DTALIB and SCHEMA and call      *
+000122220418      *                   OSPCRT1CL to create stored procedure under   *
+000123220411      *                   all SCHEMA                                   *
+000125220411      *                                                                *
+000126220411      ******************************************************************
+000127220411      *                                                                *
+000128220411      *    SWITCH       : -                                            *
+000129220411      *                                                                *
+000130220411      *                                                                *
+000131220411      *    LOCAL-DATA   : -                                            *
+000132220411      *                                                                *
+000133220411      *    (C) COPYRIGHT 2006   BY MERCEDES-EDV-BERATUNG GMBH          *
+000134220411      *----------------------------------------------------------------*
+000135220411      ****  --->>>---------------------------------------------        *
+000136220411      *   01 KD   11.04.2022     Kalyani Deshkar.                      *
+000137220411      *                                                                *
+000140220411      *   Release/Bugfix: ---                                          *
+000141220411      *   TicketNr:                                                    *
+000142220411      *                                                                *
+000143220411      *   Context:                                                     *
+000144220411      *   --------                                                     *
+000145220411      *   Initial creation                                             *
+000146220411      *                                                                *
+000147220411      *                                                                *
+000148220411      *   Problem / request (why?):                                    *
+000149220411      *   ----------------------                                       *
+000150220411      *                                                                *
+000151220411      *   tech. Notes: (what?) Optional                                *
+000152220411      *   ----------------------                                       *
+000153220411      *                                                                *
+000154220411      ****  ---<<<                                                     *
+000155220411      *                                                                *
+000156220411      ****  --->>>---------------------------------------------        *
+000157220411
+000158220411       ENVIRONMENT DIVISION.
+000159220411       CONFIGURATION SECTION.
+000160220411
+000161220411       SOURCE-COMPUTER.        IBM-AS400.
+000162220411       OBJECT-COMPUTER.        IBM-AS400.
+000163220411
+000164220411       INPUT-OUTPUT SECTION.
+000165220411       FILE-CONTROL.
+000166220411
+000167220411       DATA DIVISION.
+000168220411       FILE SECTION.
+000169220411
+000170220411       WORKING-STORAGE SECTION.
+000171220411
+000172220411      *---------------------------------------------------------------*
+000173220411      *   *** ARBER FUER PROGRAMM-VERSION UND PROJEKT ***             *
+000174220411      *---------------------------------------------------------------*
+000175220411
+000176220411       01  K-PROGNR                    PIC  X(07)   VALUE  "OSPCRT".
+000177220411       01  K-VERSIONSNR                PIC  9(02)   VALUE  01.
+000178220411       01  K-PROJEKT                   PIC  X(03)   VALUE  "ALX".
+000179220411
+000180220411      *---------------------------------------------------------------*
+000181220411      *    SQL - Bereich                                              *
+000182220411      *---------------------------------------------------------------*
+000183220411       01  SQL-RETURNCODE.
+000184220411           05  SQL-RC         PIC S9(09).
+000185220411               88  SQL-OK                   VALUE +0.
+000186220411               88  SQL-GR35                 VALUE +36.
+000187220411               88  SQL-NOTFOUND             VALUE +100.
+000188220411               88  SQL-INDVAR               VALUE -305.
+000189220411               88  SQL-EXISTS               VALUE -601.
+000190220411               88  SQL-DUPKEY               VALUE -803.
+000191220411               88  SQL-MOREFOUND            VALUE -811.
+000192220411
+000193220411       COPY CXLSQLERR IN QCBLLECPY.
+000194220411       COPY CXADATUM  IN QCBLLECPY.
+000195220411
+000196220411       01  WS-CNT      PIC  9(03).
+000198220411
+000199220411      *---------------------------------------------------------------*
+000200220411      *    Linkage variable for OSPCRT1CL                             *
+000201220411      *---------------------------------------------------------------*
+000202220411       01  INOUTRC     PIC  X(05).
+000203220411       01  INOUTRCMSG  PIC  X(100).
+000204220419       01  INMANDANT   PIC  X(04).
+000205220411       01  INDTALIB    PIC  X(10).
+000206220411       01  INSCHEMA    PIC  X(10).
+000207220411
+000208220411      *---------------------------------------------------------------*
+000209220411      *    SQL - Systemvariable (automatisch)                         *
+000210220411      *---------------------------------------------------------------*
+000211220411           EXEC SQL
+000212220411                INCLUDE SQLCA
+000213220411           END-EXEC.
+000214220411
+000215220411      *---------------------------------------------------------------*
+000216220411      *    SQL - HOST Variablen (selbst definiert)                    *
+000217220411      *---------------------------------------------------------------*
+000218220411           EXEC SQL
+000219220411                BEGIN DECLARE SECTION
+000220220411           END-EXEC.
+000221220411
+000222220411           01  H-MANDANT      PIC X(04).
+000223220411           01  H-DTALIB       PIC X(10).
+000224220411           01  H-SCHEMA       PIC X(10).
+000225220411
+000226220411           EXEC SQL
+000227220411                END   DECLARE SECTION
+000228220411           END-EXEC.
+000229220411
+000230220411      *****************************************************************
+000231220411      *           *****   Linkage Variables   *****                   *
+000232220411      *****************************************************************
+000233220411       LINKAGE  SECTION.
+000234220411
+000235220411       01 OUT-AX-RC                          PIC X(005).
+000236220411       01 OUT-AX-RCMSG                       PIC X(100).
+000237220411
+000238220411       PROCEDURE DIVISION USING OUT-AX-RC
+000239220411                                OUT-AX-RCMSG
+000240220411                                .
+000241220411
+000242220411       S   SECTION.
+000243220411       S01.
+000244220411           PERFORM   X01-DATUM.
+000245220411           PERFORM   E01-GETALL-SCHEMA.
+000246220411
+000247220411       S-EXIT.
+000248220411           STOP RUN.
+000249220411
+000250220411       COPY CXPDATUM IN QCBLLECPY.
+000251220411
+000252220411      *****************************************************************
+000253220411      *    Cursor for Fetching DTALIB and SCHEMA of each Mandant      *
+000254220411      *****************************************************************
+000255220411       E01-GETALL-SCHEMA    SECTION.
+000256220411
+000257220411       E01-GETALL-SCHEMA-01.
+000258220411
+000259220411           MOVE ZEROS              TO SQLCODE
+000260220411           MOVE ZEROS              TO WS-CNT
+000261220411
+000262220411           EXEC SQL
+000263220411                DECLARE  JOBAPF_CUR CURSOR FOR
+000264220411                SELECT DISTINCT
+000265220411                  MANDANT
+000266220411                 ,DTALIB
+000267220411                 ,SCHEMA
+000268220411                 FROM    $JOBAPF
+000269220411                 WHERE   DEVTYPE = 'M'
+000270220411                 ORDER BY
+000271220411                 MANDANT, DTALIB, SCHEMA
+000272220411           END-EXEC
+000273220411
+000274220411           IF  SQLCODE NOT = ZEROS
+000275220411               MOVE "00100"                              TO OUT-AX-RC
+000276220411               MOVE "Error in Declare JOBAPF_CUR Cursor" TO OUT-AX-RCMSG
+000277220411           END-IF.
+000278220411      *
+000279220411       E01-GETALL-SCHEMA-02.
+000280220411
+000281220411           MOVE ZEROS              TO SQLCODE
+000282220411
+000283220411           EXEC SQL
+000284220411                OPEN JOBAPF_CUR
+000285220411           END-EXEC
+000286220411
+000287220411           IF  SQLCODE NOT = ZEROS
+000288220411               MOVE "00101"                            TO OUT-AX-RC
+000289220411               MOVE "Error in Open JOBAPF_CUR Cursor"  TO OUT-AX-RCMSG
+000290220411           END-IF.
+000291220411
+000292220411       E01-GETALL-SCHEMA-03.
+000293220411
+000294220411           MOVE ZEROS              TO SQLCODE
+000295220411
+000296220411           EXEC SQL
+000297220411                FETCH JOBAPF_CUR
+000298220411                INTO
+000299220411                 :H-MANDANT
+000300220411                ,:H-DTALIB
+000301220411                ,:H-SCHEMA
+000302220411           END-EXEC.
+000303220411
+000304220411           IF  SQLCODE NOT = ZEROS AND SQLCODE NOT = 100
+000305220411              IF WS-CNT = 0
+000306220411                 MOVE "00102"                            TO OUT-AX-RC
+000307220411                 MOVE "Error in Fetch JOBAPF_CUR Cursor" TO OUT-AX-RCMSG
+000308220411              ELSE
+000309220411                 MOVE "00103"                            TO OUT-AX-RC
+000310220411                 MOVE "Error in Fetch JOBAPF_CUR Cursor but some stored
+000311220411      -    "procedures created in some SCHEMA. Please check O_TBLLOG"
+000312220411                                                         TO OUT-AX-RCMSG
+000313220411               END-IF
+000314220411           END-IF.
+000315220411
+000316220411           IF  SQLCODE = ZEROS
+000317220411               ADD  1  TO WS-CNT
+000318220420               MOVE  SPACES        TO  INOUTRC
+000319220411               MOVE  SPACES        TO  INOUTRCMSG
+000320220411               MOVE  H-MANDANT     TO  INMANDANT
+000321220411               MOVE  H-DTALIB      TO  INDTALIB
+000322220411               MOVE  H-SCHEMA      TO  INSCHEMA
+000323220411
+000324220411               IF INSCHEMA = SPACE
+000325220411                  GO TO E01-GETALL-SCHEMA-03
+000326220411               END-IF
+000327220411
+000328220411               CALL  "OSPCRT1CL"  USING INOUTRC
+000329220411                                        INOUTRCMSG
+000330220411                                        INMANDANT
+000331220411                                        INDTALIB
+000332220411                                        INSCHEMA
+000333220411
+000334220411               IF INOUTRCMSG NOT = SPACE
+000335220411                  MOVE INOUTRC     TO  OUT-AX-RC
+000336220411                  MOVE INOUTRCMSG  TO  OUT-AX-RCMSG
+000337220411                  GO TO E01-GETALL-SCHEMA-04
+000338220411               END-IF
+000339220411
+000340220411               GO TO E01-GETALL-SCHEMA-03
+000341220411           END-IF.
+000342220411
+000343220411           IF  SQLCODE = 100
+000344220411               MOVE "00000"        TO OUT-AX-RC
+000345220411               MOVE "Please check O_TBLLOG to know create stored
+000346220411      -    "procedures log"
+000347220411                                   TO OUT-AX-RCMSG
+000348220411           END-IF.
+000349220411
+000350220411       E01-GETALL-SCHEMA-04.
+000351220411
+000352220411           MOVE ZEROS              TO SQLCODE
+000353220411
+000354220411           EXEC SQL
+000355220411                CLOSE JOBAPF_CUR
+000356220411           END-EXEC
+000357220411
+000358220411           IF  SQLCODE NOT = ZEROS
+000359220411               MOVE "00104"        TO OUT-AX-RC
+000360220411                 MOVE "Error in Close JOBAPF_CUR Cursor" TO OUT-AX-RCMSG
+000361220411           END-IF.
+000362220411
+000363220411       E01-GETALL-SCHEMA-EXIT.
+000364220411           EXIT.
+000365220411

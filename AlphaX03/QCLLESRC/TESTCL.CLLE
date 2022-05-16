@@ -1,0 +1,63 @@
+000100200430/* ========================================================================== */
+000101210730/*  TESTCL - Not to be shipped.                                               */
+000102200430/* -------------------------------------------------------------------------- */
+000105200430/* ========================================================================== */
+000106200430           PGM  (&ORC &OMSG &IN1 &IN2 &IN3 &IN4 &IN5 &IN6 &IN7)
+000107200430
+000109200430
+000110200430/*  Host Variables */
+000111200430             DCL        VAR(&ERRORSW)    TYPE(*LGL)
+000112200430             DCL        VAR(&H1)     TYPE(*CHAR) LEN(06)
+000113200430             DCL        VAR(&H2)     TYPE(*CHAR) LEN(06)
+000114200430             DCL        VAR(&H3)     TYPE(*CHAR) LEN(06)
+000115200430             DCL        VAR(&H4)     TYPE(*CHAR) LEN(06)
+000116200430
+000117200430/*  Linkage Variables */
+000118200430             DCL        VAR(&ORC)    TYPE(*CHAR) LEN(04)
+000119200430             DCL        VAR(&OMSG)   TYPE(*CHAR) LEN(72)
+000120200430             DCL        VAR(&IN1)    TYPE(*CHAR) LEN(06)
+000121200430             DCL        VAR(&IN2)    TYPE(*CHAR) LEN(06)
+000122200430             DCL        VAR(&IN3)    TYPE(*CHAR) LEN(06)
+000123200430             DCL        VAR(&IN4)    TYPE(*CHAR) LEN(06)
+000124200430             DCL        VAR(&IN5)    TYPE(*CHAR) LEN(02)
+000125200430             DCL        VAR(&IN6)    TYPE(*CHAR) LEN(01)
+000126200430             DCL        VAR(&IN7)    TYPE(*CHAR) LEN(02)
+000127200430
+000128200430             CHGVAR     VAR(&H1) VALUE(&IN1)
+000129200430             MONMSG MSGID(MCH0000) EXEC(DO)
+000130200430                    CHGVAR     &ORC  VALUE('9999')
+000131200430                    CHGVAR     VAR(&OMSG) VALUE('IN1 Not supplied')
+000132200430                    GOTO ENDE
+000133200430             ENDDO
+000134200430
+000135200430             CHGVAR     VAR(&H2) VALUE(&IN2)
+000136200430             MONMSG MSGID(MCH0000) EXEC(DO)
+000137200430                    CHGVAR     &ORC  VALUE('9999')
+000138200430                    CHGVAR     VAR(&OMSG) VALUE('IN1 Not supplied')
+000139200430                    GOTO ENDE
+000140200430             ENDDO
+000141200430
+000142200430             CHGVAR     VAR(&H3) VALUE(&IN3)
+000143200430             MONMSG MSGID(MCH0000) EXEC(DO)
+000145200430                    CHGVAR     &ORC  VALUE('9999')
+000146200430                    CHGVAR     VAR(&OMSG) VALUE('IN1 Not supplied')
+000147200430                    GOTO ENDE
+000148200430             ENDDO
+000149200430
+000150200430             CHGVAR     VAR(&H4) VALUE(&IN4)
+000151200430             MONMSG MSGID(MCH0000) EXEC(DO)
+000152200430                    CHGVAR     &ORC  VALUE('9999')
+000153200430                    CHGVAR     VAR(&OMSG) VALUE('IN1 Not supplied')
+000154200430                    GOTO ENDE
+000155200430             ENDDO
+000156200430
+000157200430             MONMSG     MSGID(CPF0000) EXEC(GOTO MEBCANCEL)
+000158200430
+000159200430           GOTO        ENDE
+000160200430/* -------------------------------------------------------------------------- */
+000161200430MEBCANCEL:
+000162200430           IF          &ERRORSW SNDPGMMSG MSGID(CPF9999) MSGF(QCPFMSG) MSGTYPE(*ESCAPE)
+000163200430           CHGVAR      &ERRORSW '1'
+000164200430           CALL        $CLPERRCL
+000165200430ENDE:
+000166200430           ENDPGM

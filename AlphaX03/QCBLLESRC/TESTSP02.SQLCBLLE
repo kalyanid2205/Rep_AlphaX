@@ -1,0 +1,301 @@
+000001220512       PROCESS QUOTE
+000002220512
+000003220512       COPY PROZESS IN QCBLLECPY.
+000004220512
+000005220512       IDENTIFICATION DIVISION.
+000006220512       PROGRAM-ID.    OSPCRT1.
+000007220512
+000008220512       AUTHOR.        Kalyani Deshkar.
+000009220512
+000010220512       DATE-COMPILED.
+000011220512      *----------------------------------------------------------------*
+000012220512      * -- SQL  ---  SQL  ---  SQL  ---  SQL  ---  SQL  ---  SQL  ---  *
+000013220512      *----------------------------------------------------------------*
+000014220512      *               PROGRAMM-BESCHREIBUNG                            *
+000015220512      *                                                                *
+000016220512      *    PROJEKT      : AlphaX                                       *
+000017220512      *    PROGRAM-NAME : OSPCRT1                                      *
+000018220512      *    TITEL        : Create Admin stored procedure   no remote    *
+000019220512      *                                                                *
+000020220512      *    AUTOR        : Kalyani Deshkar.                             *
+000021220512      *    Create Date  : 11.04.2022.                                  *
+000022220512      *    DESCRIPTION  : This module creates stored procedure under   *
+000023220512      *                   all schemas.                                 *
+000024220512      ******************************************************************
+000025220512      *                                                                *
+000026220512      *    SWITCH       : -                                            *
+000027220512      *                                                                *
+000028220512      *                                                                *
+000029220512      *    LOCAL-DATA   : -                                            *
+000030220512      *                                                                *
+000031220512      *    (C) COPYRIGHT 2006   BY MERCEDES-EDV-BERATUNG GMBH          *
+000032220512      *----------------------------------------------------------------*
+000033220512      ****  --->>>---------------------------------------------        *
+000034220512      *   01 KD   11.04.2022     Kalyani Deshkar.                      *
+000035220512      *                                                                *
+000036220512      *   02 KD   02.05.2022     Kalyani Deshkar.                      *
+000037220512      *                        - Stored procedure SP_CNTLST can sort   *
+000038220512      *                          by place as well as TNR.              *
+000039220512      *                                                                *
+000040220512      *   Release/Bugfix: ---                                          *
+000041220512      *   TicketNr:                                                    *
+000042220512      *                                                                *
+000043220512      *   Context:                                                     *
+000044220512      *   --------                                                     *
+000045220512      *   Initial creation                                             *
+000046220512      *                                                                *
+000047220512      *                                                                *
+000048220512      *   Problem / request (why?):                                    *
+000049220512      *   ----------------------                                       *
+000050220512      *                                                                *
+000051220512      *   tech. Notes: (what?) Optional                                *
+000052220512      *   ----------------------                                       *
+000053220512      *                                                                *
+000054220512      ****  ---<<<                                                     *
+000055220512      *                                                                *
+000056220512      ****  --->>>---------------------------------------------        *
+000057220512
+000058220512       ENVIRONMENT DIVISION.
+000059220512       CONFIGURATION SECTION.
+000060220512
+000061220512       SOURCE-COMPUTER.        IBM-AS400.
+000062220512       OBJECT-COMPUTER.        IBM-AS400.
+000063220512
+000064220512       INPUT-OUTPUT SECTION.
+000065220512       FILE-CONTROL.
+000066220512
+000067220512       DATA DIVISION.
+000068220512       FILE SECTION.
+000069220512
+000070220512       WORKING-STORAGE SECTION.
+000071220512
+000072220512      *---------------------------------------------------------------*
+000073220512      *   *** ARBER FUER PROGRAMM-VERSION UND PROJEKT ***             *
+000074220512      *---------------------------------------------------------------*
+000075220512
+000076220512       01  K-PROGNR                    PIC  X(07)   VALUE  "OSPCRT1".
+000077220512       01  K-VERSIONSNR                PIC  9(02)   VALUE  01.
+000078220512       01  K-PROJEKT                   PIC  X(03)   VALUE  "ALX".
+000079220512
+000080220512
+000081220512       01  Z-SP-CRT            PIC  X(50)
+000082220512                VALUE "Stored procedure created successfully".
+000083220512       01  Z-SP-EXISTS         PIC  X(50)
+000084220512                VALUE "Stored procedure already exists".
+000085220512       01  Z-SP-ERR            PIC  X(50)
+000086220512                VALUE "Error occurred in creating stored procedure".
+000087220512
+000088220512      *---------------------------------------------------------------*
+000089220512      *    SQL - Bereich                                              *
+000090220512      *---------------------------------------------------------------*
+000091220512       01  SQL-RETURNCODE.
+000092220512           05  SQL-RC         PIC S9(09).
+000093220512               88  SQL-OK                   VALUE +0.
+000094220512               88  SQL-GR35                 VALUE +36.
+000095220512               88  SQL-NOTFOUND             VALUE +100.
+000096220512               88  SQL-INDVAR               VALUE -305.
+000097220512               88  SQL-EXISTS               VALUE -601.
+000098220512               88  SQL-DUPKEY               VALUE -803.
+000099220512               88  SQL-MOREFOUND            VALUE -811.
+000100220512
+000101220512       COPY CXLSQLERR IN QCBLLECPY.
+000102220512       COPY CXADATUM  IN QCBLLECPY.
+000103220512
+000104220512      *---------------------------------------------------------------*
+000105220512      *    SQL - Systemvariable (automatisch)                         *
+000106220512      *---------------------------------------------------------------*
+000107220512           EXEC SQL
+000108220512                INCLUDE SQLCA
+000109220512           END-EXEC.
+000110220512      *---------------------------------------------------------------*
+000111220512      *    SQL - HOST Variablen (selbst definiert)                    *
+000112220512      *---------------------------------------------------------------*
+000113220512           EXEC SQL
+000114220512                BEGIN DECLARE SECTION
+000115220512           END-EXEC.
+000116220512
+000117220512       01  TBL-ERROR-MSG.
+000118220512           10  H-TBL-TBLNAME         PIC  X(50).
+000119220512           10  H-TBL-FUNCTION        PIC  X(10).
+000120220512           10  H-TBL-RC              PIC  S9(09).
+000121220512           10  H-TBL-RCMSG           PIC  X(50).
+000122220512           10  H-TBL-CREATED-TS      PIC  X(26).
+000123220512           10  H-TBL-USER            PIC  X(10).
+000124220512           10  H-TBL-OPERATION       PIC  X(100).
+000125220512       01  H-SP-NAME                    PIC X(128).
+000126220512       01  H-SP-DTALIB                  PIC X(10).
+000127220512       01  H-SP-SCHEMA                  PIC X(10).
+000128220512
+000129220512           EXEC SQL
+000130220512                END   DECLARE SECTION
+000131220512           END-EXEC.
+000132220512
+000133220512      *****************************************************************
+000134220512      *           *****   Linkage Variables   *****                   *
+000135220512      *****************************************************************
+000136220512       LINKAGE  SECTION.
+000137220512
+000138220512       01 OUT-AX-RC                          PIC X(005).
+000139220512       01 OUT-AX-RCMSG                       PIC X(100).
+000140220512       01 OUT-AX-USER                        PIC X(010).
+000141220512       01 IN-AX-DTALIB                       PIC X(010).
+000142220512       01 IN-AX-SCHEMA                       PIC X(010).
+000143220512       01 OUT-AX-CNTLST                      PIC X(001).
+000144220512
+000145220512       PROCEDURE DIVISION USING OUT-AX-RC
+000146220512                                OUT-AX-RCMSG
+000147220512                                OUT-AX-USER
+000148220512                                IN-AX-DTALIB
+000149220512                                IN-AX-SCHEMA
+000150220512                                OUT-AX-CNTLST
+000151220512                                .
+000152220512
+000153220512       S   SECTION.
+000154220512       S01.
+000155220512           PERFORM   X01-DATUM.
+000156220512           MOVE      OUT-AX-USER    TO  H-TBL-USER.
+000157220512
+000158220512       S02.
+000159220512           INITIALIZE  H-TBL-FUNCTION
+000160220512                       H-TBL-OPERATION
+000161220512                       H-TBL-CREATED-TS
+000162220512                       .
+000163220512
+000164220512           MOVE       IN-AX-DTALIB        TO  H-SP-DTALIB.
+000165220512           MOVE       IN-AX-SCHEMA        TO  H-SP-SCHEMA.
+000166220512
+000167220512           PERFORM   CREATE-ACTCOUNT-SP
+000168220512              .
+000169220512
+000170220512       S999.
+000171220512
+000172220512       S-EXIT.
+000173220512           STOP RUN.
+000174220512
+000175220512       COPY CXPDATUM IN QCBLLECPY.
+000176220512
+000177220512      *----------------------------------------------------------------
+000178220512      *>   Create one time stored procedure SP_CNTLST
+000179220512      *----------------------------------------------------------------
+000180220512       CREATE-ACTCOUNT-SP SECTION.
+000181220512
+000182220512       CREATE-ACTCOUNT-SP-00.
+000183220512           MOVE      "SP_CNTLST"
+000184220512                                     TO  H-TBL-TBLNAME
+000185220512           MOVE      "CREATE SP"     TO  H-TBL-FUNCTION
+000186220512           MOVE      "Create new stored procedure"
+000187220512                                     TO  H-TBL-OPERATION
+000188220512
+000189220512       CREATE-ACTCOUNT-SP-02.
+000190220512
+000191220512           INITIALIZE  H-TBL-RC
+000192220512                       H-TBL-RCMSG
+000193220512                       .
+000194220512           MOVE ZEROES TO SQLCODE.
+000195220512
+000196220512           EXEC SQL
+000197220512
+000198220512             CREATE PROCEDURE ELSDB090/SP_CNTLST(
+000199220512               IN LID BIGINT, IN SCHEMA VARCHAR(10),
+000200220512               IN DTALIB VARCHAR(10))
+000201220512               LANGUAGE SQL
+000202220512               SPECIFIC SP_CNTLST
+000203220512               NOT DETERMINISTIC
+000204220512               MODIFIES SQL DATA
+000205220512               CALLED ON NULL INPUT
+000206220512               SET OPTION  ALWBLK = *ALLREAD ,
+000207220512               ALWCPYDTA = *OPTIMIZE ,
+000208220512               COMMIT = *NONE ,
+000209220512               DECRESULT = (31, 31, 00) ,
+000210220512               DYNDFTCOL = *NO ,
+000211220512               DYNUSRPRF = *USER ,
+000212220512               SRTSEQ = *HEX
+000213220512
+000214220512               BEGIN
+000215220512               DECLARE X INTEGER ;
+000216220512               DECLARE XLNR INTEGER ;
+000217220512               DECLARE XDAK NUMERIC ( 15 , 4 ) ;
+000218220512               DECLARE XBES NUMERIC ( 9 , 2 ) ;
+000219220512               DECLARE SORT_BY NUMERIC (2) ;
+000220220512
+000221220512               SET X = 1 ;
+000222220512               SET XLNR = (SELECT WAREHOUSE_ID FROM SCHEMA/O_INVLIST
+000223220512                                      WHERE INVLIST_ID = LID ) ;
+000224220512
+000225220512               SET SORT_BY = (SELECT SORT_BY FROM SCHEMA/O_INVLIST
+000226220512                                      WHERE INVLIST_ID = LID ) ;
+000227220512               FOR V CURSOR FOR
+000228220512                              SELECT ID as xID, OEM as xOEM,
+000229220512                              TNR AS XTNR , PLACE AS XPLACE
+000230220512                              FROM SCHEMA/O_INVPART WHERE
+000231220512                              INVLIST_ID = LID ORDER BY
+000232220512                              CASE WHEN SORT_BY = 0 THEN TNR END,        KD02
+000233220512                              CASE WHEN SORT_BY = 1 THEN PLACE END       KD02
+000234220512               DO
+000235220512                              SET XDAK = ( SELECT DAK FROM
+000236220512                             DTALIB/E_ETSTAMM WHERE LNR = XLNR AND
+000237220512                              TNR = XTNR AND HERST = XOEM ) ;
+000238220512
+000239220512                              SET XBES = ( SELECT AKTBES FROM
+000240220512                              DTALIB/E_ETSTAMM WHERE LNR = XLNR AND
+000241220512                              TNR = XTNR AND HERST = XOEM ) ;
+000242220512
+000243220512                              UPDATE SCHEMA/O_INVPART SET CNT = X ,
+000244220512                            DAK = XDAK, OLD_STOCK = XBES WHERE ID = xID;
+000245220512
+000246220512                              SET X = X + 1 ;
+000247220512               END FOR ;
+000248220512               END
+000249220512           END-EXEC.
+000250220512
+000251220512           MOVE      SQLCODE         TO  H-TBL-RC.
+000252220512
+000253220512           IF   SQLCODE  EQUAL  ZEROES
+000254220512                MOVE      'Y'             TO  OUT-AX-CNTLST
+000255220512                MOVE      Z-SP-CRT        TO  H-TBL-RCMSG
+000256220512           ELSE
+000257220512                IF   SQLCODE = -454
+000258220512                     MOVE      'N'             TO  OUT-AX-CNTLST
+000259220512                     MOVE      Z-SP-EXISTS     TO  H-TBL-RCMSG
+000260220512                ELSE
+000261220512                     MOVE      'N'             TO  OUT-AX-CNTLST
+000262220512                     MOVE      Z-SP-ERR        TO  H-TBL-RCMSG
+000263220512           END-IF.
+000264220512
+000265220512           PERFORM   INSERT-TBLLOG-TABLE.
+000266220512
+000267220512       CREATE-ACTCOUNT-SP-EXIT.
+000268220512           EXIT.
+000269220512
+000270220512      *--------------------------------------------
+000271220512      *>   Insert Data in O-TBLLOG table
+000272220512      *--------------------------------------------
+000273220512       INSERT-TBLLOG-TABLE SECTION.
+000274220512       INSERT-TBLLOG-TABLE-00.
+000275220512
+000276220512           MOVE ZEROES TO SQLCODE.
+000277220512           EXEC SQL
+000278220512             INSERT INTO O_TBLLOG
+000279220512                  (TBLNAME
+000280220512                  ,FUNCTION
+000281220512                  ,RC
+000282220512                  ,RCMSG
+000283220512                  ,LOGIN
+000284220512                  ,OPERATION
+000285220512                  )
+000286220512             VALUES
+000287220512                  (:H-TBL-TBLNAME
+000288220512                  ,:H-TBL-FUNCTION
+000289220512                  ,:H-TBL-RC
+000290220512                  ,:H-TBL-RCMSG
+000291220512                  ,:H-TBL-USER
+000292220512                  ,:H-TBL-OPERATION
+000293220512                  )
+000294220512           END-EXEC.
+000295220512           IF  SQLCODE  NOT = ZEROES
+000296220512              MOVE "00002"  TO  OUT-AX-RC
+000297220512              MOVE "Insert in O_TBLLOG table failed"
+000298220512                               TO  OUT-AX-RCMSG
+000299220512           END-IF.
+000300220512       INSERT-TBLLOG-TABLE-EXIT.
+000301220512           EXIT.

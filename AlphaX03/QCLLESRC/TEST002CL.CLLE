@@ -1,0 +1,64 @@
+000001200617/* ========================================================================== */
+000002200617/*  TEST001CL  Aufrufen ETSTAMM-Verwaltung                                    */
+000003200617/* -------------------------------------------------------------------------- */
+000004200617/*  01/29.04.20 DB  1.0   Ersterstellung                                      */
+000005200617/*                                                                            */
+000006200617/* ========================================================================== */
+000007200617           PGM
+000008200617
+000009200617
+000010200617/*  System Variables */
+000011200617             DCL        VAR(&ERRORSW)    TYPE(*LGL)
+000012200617             DCL        VAR(&PODLIB)     TYPE(*CHAR) LEN(10)
+000013200617             DCL        VAR(&DTALIB)     TYPE(*CHAR) LEN(10)
+000014200617
+000015200617/*  Linkage Variables */
+000016200617             DCL        VAR(&INOUTRC)    TYPE(*CHAR) LEN(5)   VALUE(' ')
+000017200617             DCL        VAR(&INOUTRCMSG) TYPE(*CHAR) LEN(100) VALUE(' ')
+000018200617             DCL        VAR(&INLOCID)    TYPE(*CHAR) LEN(6)   VALUE(' ')
+000019200617             DCL        VAR(&INFNKTN)    TYPE(*CHAR) LEN(6)   VALUE(' ')
+000020200617             DCL        VAR(&INHERST)    TYPE(*CHAR) LEN(4)   VALUE(' ')
+000021200617             DCL        VAR(&INLNR)      TYPE(*CHAR) LEN(2)   VALUE(' ')
+000022200617             DCL        VAR(&INTNR)      TYPE(*CHAR) LEN(30)  VALUE(' ')
+000023200617             DCL        VAR(&INBENEN)    TYPE(*CHAR) LEN(50)  VALUE(' ')
+000024200617             DCL        VAR(&INFIRMA)    TYPE(*CHAR) LEN(2)   VALUE(' ')
+000025200617             DCL        VAR(&INFILIAL)   TYPE(*CHAR) LEN(2)   VALUE(' ')
+000026200617             DCL        VAR(&INSA)       TYPE(*CHAR) LEN(1)   VALUE(' ')
+000027200617             DCL        VAR(&INMC)       TYPE(*CHAR) LEN(6)   VALUE(' ')
+000028200617             DCL        VAR(&INEPR)      TYPE(*CHAR) LEN(12)  VALUE(' ')
+000029200617             DCL        VAR(&INRGDAG)    TYPE(*CHAR) LEN(2)   VALUE(' ')
+000030200617
+000075200617
+000076200617           MONMSG     MSGID(CPF0000) EXEC(GOTO MEBCANCEL)
+000077200617
+000078200617           $RTVJOBA   DTALIB(&DTALIB) PODLIB(&PODLIB)
+000079200617           MONMSG     MSGID(MCH0000)  EXEC(GOTO MEBCANCEL)
+000080200617
+000081200617             CHGVAR  &INLOCID     VALUE('010101')
+000082200617             CHGVAR  &INFNKTN     VALUE('      ')
+000083200617             CHGVAR  &INHERST     VALUE('DCAG')
+000084200617             CHGVAR  &INLNR       VALUE('01')
+000085200617             CHGVAR  &INTNR       VALUE('A112233449953')
+000086200617             CHGVAR  &INBENEN     VALUE('Filter Part')
+000087200617             CHGVAR  &INFIRMA     VALUE('01')
+000088200617             CHGVAR  &INFILIAL    VALUE('01')
+000089200617             CHGVAR  &INSA        VALUE('1')
+000090200617             CHGVAR  &INMC        VALUE('2LU686')
+000091200617             CHGVAR  &INEPR       VALUE('100')
+000092200617             CHGVAR  &INRGDAG     VALUE('20')
+000093200617
+000114200617
+000115200617
+000116200617           CALL  PGM(OETP001CL) PARM(&INOUTRC &INOUTRCMSG &INLOCID &INFNKTN &INHERST +
+000117200617                 &INLNR &INTNR &INBENEN &INFIRMA &INFILIAL &INSA &INMC &INEPR &INRGDAG)
+000125200617
+000126200617
+000127200617           GOTO        ENDE
+000128200617/* -------------------------------------------------------------------------- */
+000129200617MEBCANCEL:
+000130200617           IF          &ERRORSW SNDPGMMSG MSGID(CPF9999) MSGF(QCPFMSG) MSGTYPE(*ESCAPE)
+000131200617           CHGVAR      &ERRORSW '1'
+000132200617           CALL        $CLPERRCL
+000133200617ENDE:
+000134200617           RETURN
+000135200617           ENDPGM

@@ -1,0 +1,71 @@
+000001200429/* ========================================================================== */
+000002200430/*  TEST001CL  Aufrufen ETSTAMM-Verwaltung                                    */
+000003200429/* -------------------------------------------------------------------------- */
+000004200429/*  01/29.04.20 DB  1.0   Ersterstellung                                      */
+000008200429/*                                                                            */
+000009200429/* ========================================================================== */
+000010200430           PGM
+000011200430
+000013200429/*  System Variables */
+000015200429             DCL        VAR(&ERRORSW)    TYPE(*LGL)
+000016200429             DCL        VAR(&PODLIB)     TYPE(*CHAR) LEN(10)
+000017200429             DCL        VAR(&DTALIB)     TYPE(*CHAR) LEN(10)
+000018200429             DCL        VAR(&FIRMA)      TYPE(*CHAR) LEN(1)
+000019200429
+000020200429/*  Linkage Variables */
+000021200429             DCL        VAR(&OUTRC)      TYPE(*CHAR) LEN(04)
+000022200429             DCL        VAR(&OUTRCMSG)   TYPE(*CHAR) LEN(72)
+000023200429             DCL        VAR(&INLOCID)    TYPE(*CHAR) LEN(06)
+000024200429             DCL        VAR(&INTNR)      TYPE(*CHAR) LEN(30)
+000025200429             DCL        VAR(&INTA)       TYPE(*CHAR) LEN(02)
+000026200429             DCL        VAR(&INLEIART)   TYPE(*CHAR) LEN(02)
+000027200429             DCL        VAR(&INBENEN)    TYPE(*CHAR) LEN(50)
+000028200429             DCL        VAR(&INLIWERK)   TYPE(*CHAR) LEN(02)
+000029200429             DCL        VAR(&INTMARKE)   TYPE(*CHAR) LEN(02)
+000030200429             DCL        VAR(&INPRKZ)     TYPE(*CHAR) LEN(01)
+000031200429             DCL        VAR(&INSKL)      TYPE(*CHAR) LEN(02)
+000032200429             DCL        VAR(&INMC)       TYPE(*CHAR) LEN(06)
+000033200429             DCL        VAR(&INMWST)     TYPE(*CHAR) LEN(02)
+000034200504             DCL        VAR(&INEPR)      TYPE(*CHAR) LEN(17)
+000035200429             DCL        VAR(&INRG)       TYPE(*CHAR) LEN(05)
+000036200429
+000037200429           MONMSG     MSGID(CPF0000) EXEC(GOTO MEBCANCEL)
+000038200429
+000039200429           $RTVJOBA   DTALIB(&DTALIB) PODLIB(&PODLIB)
+000040200429           MONMSG     MSGID(MCH0000)  EXEC(GOTO MEBCANCEL)
+000041200429
+000042200429           $RTVJOBA   FIRNR(&FIRMA)
+000043200429           MONMSG     MSGID(MCH0000)  EXEC(GOTO MEBCANCEL)
+000044200430
+000045200430             CHGVAR  &OUTRC       VALUE(' ')
+000046200430             CHGVAR  &OUTRCMSG    VALUE(' ')
+000047200504             CHGVAR  &INLOCID     VALUE('010101')
+000048200504             CHGVAR  &INTNR       VALUE('A1111122223TEST')
+000049200430             CHGVAR  &INTA        VALUE('01')
+000050200430             CHGVAR  &INLEIART    VALUE('10')
+000051200430             CHGVAR  &INBENEN     VALUE('Bezeichnung Created for test')
+000052200430             CHGVAR  &INLIWERK    VALUE('50')
+000053200430             CHGVAR  &INTMARKE    VALUE('D ')
+000054200430             CHGVAR  &INPRKZ      VALUE(' ')
+000055200430             CHGVAR  &INSKL       VALUE(' ')
+000056200430             CHGVAR  &INMC        VALUE('1PVP01')
+000057200430             CHGVAR  &INMWST      VALUE('01')
+000058200504             CHGVAR  &INEPR       VALUE('120,99123')
+000059200430             CHGVAR  &INRG        VALUE('20')
+000060200430
+000061200429
+000062200429
+000063200430           CALL        PGM(OETP001CL) PARM(&OUTRC &OUTRCMSG &INLOCID &INTNR              -
+000064200429                       &INTA &INLEIART &INBENEN &INLIWERK &INTMARKE                      -
+000065200429                       &INPRKZ &INSKL &INMC &INMWST &INEPR &INRG)
+000066200430
+000067200429
+000068200429           GOTO        ENDE
+000069200429/* -------------------------------------------------------------------------- */
+000070200429MEBCANCEL:
+000071200429           IF          &ERRORSW SNDPGMMSG MSGID(CPF9999) MSGF(QCPFMSG) MSGTYPE(*ESCAPE)
+000072200429           CHGVAR      &ERRORSW '1'
+000073200429           CALL        $CLPERRCL
+000074200429ENDE:
+000075200504           RETURN
+000076200429           ENDPGM

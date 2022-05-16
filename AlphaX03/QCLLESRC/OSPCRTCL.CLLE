@@ -1,0 +1,62 @@
+000001220411/* ==========================================================================  */
+000002220411/*  OSPCRTCL                                                                   */
+000003220411/* --------------------------------------------------------------------------  */
+000004220419/*  01/11.04.2022 KD Initial Creation - Create stored procedure for all SCHEMA */
+000012220411/* =========================================================================== */
+000013220411             PGM        (&INOUTRC &INOUTRCMSG )
+000014220411
+000015220411/* --- Declaration of CL program Linkage variable ---*/
+000016220411             DCL        VAR(&INOUTRC)          TYPE(*CHAR) LEN(0005)
+000017220411             DCL        VAR(&INOUTRCMSG)       TYPE(*CHAR) LEN(0100)
+000018220411
+000019220411/* --- Declaration of COBOL program Linkage variable ---*/
+000020220411             DCL        VAR(&RC)               TYPE(*CHAR) LEN(0005)
+000021220411             DCL        VAR(&RCMSG)            TYPE(*CHAR) LEN(0100)
+000022220411
+000025220411/*  System Variables */
+000026220411             DCL        VAR(&LV)         TYPE(*CHAR) LEN(01) VALUE(X'00')
+000027220411             DCL        VAR(&DATAF1)     TYPE(*CHAR) LEN(1)
+000028220411             DCL        VAR(&ERRORSW)    TYPE(*LGL)
+000029220411
+000030220411             MONMSG     MSGID(CPF0000) EXEC(GOTO MEBCANCEL)
+000031220411             MONMSG     MSGID(MCH0000)  EXEC(GOTO MEBCANCEL)
+000032220411
+000033220411/* --- Check Linkage and Low value of Mandatory fields ---*/
+000034220411
+000035220411/* &RC  */
+000036220411
+000037220411             CHGVAR     VAR(&RC) VALUE(&INOUTRC)
+000038220411             MONMSG     MSGID(MCH0000) EXEC(DO)
+000039220411                CHGVAR     VAR(&RC) VALUE(' ')
+000040220411             ENDDO
+000041220411             IF         (%SST(&RC  1 1) *EQ &LV) THEN(DO)
+000042220411                CHGVAR     VAR(&RC) VALUE(' ')
+000043220411             ENDDO
+000044220411
+000045220411/* &RCMSG  */
+000046220411
+000047220411             CHGVAR     VAR(&RCMSG) VALUE(&INOUTRCMSG)
+000048220411             MONMSG     MSGID(MCH0000) EXEC(DO)
+000049220411                CHGVAR     VAR(&RCMSG) VALUE(' ')
+000050220411             ENDDO
+000051220411             IF         (%SST(&RCMSG  1 1) *EQ &LV) THEN(DO)
+000052220411                CHGVAR     VAR(&RCMSG) VALUE(' ')
+000053220411             ENDDO
+000054220411
+000055220411 OSPCRT:
+000056220411
+000057220411             CALL       PGM(OSPCRT)  PARM(&RC &RCMSG)
+000058220411
+000062220419             CHGVAR     &INOUTRC       VALUE(&RC)
+000063220419             CHGVAR     &INOUTRCMSG    VALUE(&RCMSG)
+000064220411
+000067220411             GOTO       CMDLBL(ENDE)
+000068220411
+000070220411/* -------------------------------------------------------------------------- */
+000071220411 MEBCANCEL:
+000072220411             IF         &ERRORSW SNDPGMMSG MSGID(CPF9999) MSGF(QCPFMSG) MSGTYPE(*ESCAPE)
+000073220411             CHGVAR     &ERRORSW '1'
+000074220411             CALL       $CLPERRCL
+000075220411 ENDE:
+000076220411             RETURN
+000077220411             ENDPGM
