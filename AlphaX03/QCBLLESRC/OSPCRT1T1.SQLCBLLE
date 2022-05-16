@@ -125,7 +125,7 @@
 000127220414       01  H-SP-NAME                    PIC X(128).
 000128220414       01  H-SP-DTALIB                  PIC X(10).
 000129220414       01  H-SP-SCHEMA                  PIC X(10).
-000130220516       01  H-SP-SCHEMA1                 PIC X(10).
+000130220516       01  H-SP-SCHEMA3                 PIC X(10).
 000131220516       01  H-SP-SCHEMA2                 PIC X(10).
 000132220516      * GIT changes
 000133220516
