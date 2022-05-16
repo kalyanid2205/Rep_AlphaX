@@ -1,0 +1,300 @@
+000001220414       PROCESS QUOTE
+000002220414
+000003220414       COPY PROZESS IN QCBLLECPY.
+000004220414
+000005220414       IDENTIFICATION DIVISION.
+000006220414       PROGRAM-ID.    OSPCRT1.
+000007220414
+000008220414       AUTHOR.        Kalyani Deshkar.
+000009220414
+000010220414       DATE-COMPILED.
+000011220414      *----------------------------------------------------------------*
+000012220414      * -- SQL  ---  SQL  ---  SQL  ---  SQL  ---  SQL  ---  SQL  ---  *
+000013220414      *----------------------------------------------------------------*
+000014220414      *               PROGRAMM-BESCHREIBUNG                            *
+000015220414      *                                                                *
+000016220414      *    PROJEKT      : AlphaX                                       *
+000017220414      *    PROGRAM-NAME : OSPCRT1                                      *
+000018220414      *    TITEL        : Create Admin stored procedure                *
+000019220414      *                                                                *
+000020220414      *    AUTOR        : Kalyani Deshkar.                             *
+000021220414      *    Create Date  : 11.04.2022.                                  *
+000022220419      *    DESCRIPTION  : This module creates stored procedure under   *
+000023220419      *                   all schemas.                                 *
+000024220414      ******************************************************************
+000025220414      *                                                                *
+000026220414      *    SWITCH       : -                                            *
+000027220414      *                                                                *
+000028220414      *                                                                *
+000029220414      *    LOCAL-DATA   : -                                            *
+000030220414      *                                                                *
+000031220414      *    (C) COPYRIGHT 2006   BY MERCEDES-EDV-BERATUNG GMBH          *
+000032220414      *----------------------------------------------------------------*
+000033220414      ****  --->>>---------------------------------------------        *
+000034220414      *   01 KD   11.04.2022     Kalyani Deshkar.                      *
+000035220511      *                                                                *
+000036220511      *   02 KD   02.05.2022     Kalyani Deshkar.                      *
+000037220511      *                        - Stored procedure SP_CNTLST can sort   *
+000038220511      *                          by place as well as TNR.              *
+000039220511      *                                                                *
+000040220414      *   Release/Bugfix: ---                                          *
+000041220414      *   TicketNr:                                                    *
+000042220414      *                                                                *
+000043220414      *   Context:                                                     *
+000044220414      *   --------                                                     *
+000045220414      *   Initial creation                                             *
+000046220414      *                                                                *
+000047220414      *                                                                *
+000048220414      *   Problem / request (why?):                                    *
+000049220414      *   ----------------------                                       *
+000050220414      *                                                                *
+000051220414      *   tech. Notes: (what?) Optional                                *
+000052220414      *   ----------------------                                       *
+000053220414      *                                                                *
+000054220414      ****  ---<<<                                                     *
+000055220414      *                                                                *
+000056220414      ****  --->>>---------------------------------------------        *
+000057220414
+000058220414       ENVIRONMENT DIVISION.
+000059220414       CONFIGURATION SECTION.
+000060220414
+000061220414       SOURCE-COMPUTER.        IBM-AS400.
+000062220414       OBJECT-COMPUTER.        IBM-AS400.
+000063220414
+000064220414       INPUT-OUTPUT SECTION.
+000065220414       FILE-CONTROL.
+000066220414
+000067220414       DATA DIVISION.
+000068220418       FILE SECTION.
+000069220414
+000070220414       WORKING-STORAGE SECTION.
+000071220414
+000072220414      *---------------------------------------------------------------*
+000073220414      *   *** ARBER FUER PROGRAMM-VERSION UND PROJEKT ***             *
+000074220414      *---------------------------------------------------------------*
+000075220414
+000076220414       01  K-PROGNR                    PIC  X(07)   VALUE  "OSPCRT1".
+000077220414       01  K-VERSIONSNR                PIC  9(02)   VALUE  01.
+000078220414       01  K-PROJEKT                   PIC  X(03)   VALUE  "ALX".
+000079220414
+000080220419
+000081220414       01  Z-SP-CRT            PIC  X(50)
+000082220414                VALUE "Stored procedure created successfully".
+000083220414       01  Z-SP-EXISTS         PIC  X(50)
+000084220414                VALUE "Stored procedure already exists".
+000085220414       01  Z-SP-ERR            PIC  X(50)
+000086220414                VALUE "Error occurred in creating stored procedure".
+000087220414
+000088220414      *---------------------------------------------------------------*
+000089220414      *    SQL - Bereich                                              *
+000090220414      *---------------------------------------------------------------*
+000091220414       01  SQL-RETURNCODE.
+000092220414           05  SQL-RC         PIC S9(09).
+000093220414               88  SQL-OK                   VALUE +0.
+000094220414               88  SQL-GR35                 VALUE +36.
+000095220414               88  SQL-NOTFOUND             VALUE +100.
+000096220414               88  SQL-INDVAR               VALUE -305.
+000097220414               88  SQL-EXISTS               VALUE -601.
+000098220414               88  SQL-DUPKEY               VALUE -803.
+000099220414               88  SQL-MOREFOUND            VALUE -811.
+000100220414
+000101220414       COPY CXLSQLERR IN QCBLLECPY.
+000102220414       COPY CXADATUM  IN QCBLLECPY.
+000103220414
+000104220414      *---------------------------------------------------------------*
+000105220414      *    SQL - Systemvariable (automatisch)                         *
+000106220414      *---------------------------------------------------------------*
+000107220414           EXEC SQL
+000108220414                INCLUDE SQLCA
+000109220414           END-EXEC.
+000110220414      *---------------------------------------------------------------*
+000111220414      *    SQL - HOST Variablen (selbst definiert)                    *
+000112220414      *---------------------------------------------------------------*
+000113220414           EXEC SQL
+000114220414                BEGIN DECLARE SECTION
+000115220414           END-EXEC.
+000116220414
+000117220414       01  TBL-ERROR-MSG.
+000118220414           10  H-TBL-TBLNAME         PIC  X(50).
+000119220414           10  H-TBL-FUNCTION        PIC  X(10).
+000120220414           10  H-TBL-RC              PIC  S9(09).
+000121220414           10  H-TBL-RCMSG           PIC  X(50).
+000122220414           10  H-TBL-CREATED-TS      PIC  X(26).
+000123220414           10  H-TBL-USER            PIC  X(10).
+000124220414           10  H-TBL-OPERATION       PIC  X(100).
+000125220414       01  H-SP-NAME                    PIC X(128).
+000126220414       01  H-SP-DTALIB                  PIC X(10).
+000127220414       01  H-SP-SCHEMA                  PIC X(10).
+000128220414
+000129220414           EXEC SQL
+000130220414                END   DECLARE SECTION
+000131220414           END-EXEC.
+000133220414
+000134220414      *****************************************************************
+000135220414      *           *****   Linkage Variables   *****                   *
+000136220414      *****************************************************************
+000137220414       LINKAGE  SECTION.
+000138220414
+000139220414       01 OUT-AX-RC                          PIC X(005).
+000140220414       01 OUT-AX-RCMSG                       PIC X(100).
+000141220414       01 OUT-AX-USER                        PIC X(010).
+000143220414       01 IN-AX-DTALIB                       PIC X(010).
+000144220414       01 IN-AX-SCHEMA                       PIC X(010).
+000145220419       01 OUT-AX-CNTLST                      PIC X(001).
+000146220414
+000147220414       PROCEDURE DIVISION USING OUT-AX-RC
+000148220414                                OUT-AX-RCMSG
+000149220414                                OUT-AX-USER
+000151220414                                IN-AX-DTALIB
+000152220414                                IN-AX-SCHEMA
+000153220419                                OUT-AX-CNTLST
+000154220414                                .
+000155220414
+000156220414       S   SECTION.
+000157220414       S01.
+000158220414           PERFORM   X01-DATUM.
+000159220418           MOVE      OUT-AX-USER    TO  H-TBL-USER.
+000160220414
+000161220414       S02.
+000162220414           INITIALIZE  H-TBL-FUNCTION
+000163220414                       H-TBL-OPERATION
+000164220414                       H-TBL-CREATED-TS
+000165220414                       .
+000166220414
+000167220414           MOVE       IN-AX-DTALIB        TO  H-SP-DTALIB.
+000168220414           MOVE       IN-AX-SCHEMA        TO  H-SP-SCHEMA.
+000169220414
+000170220418           PERFORM   CREATE-ACTCOUNT-SP
+000171220414              .
+000172220414
+000173220414       S999.
+000174220414
+000175220414       S-EXIT.
+000176220414           STOP RUN.
+000177220414
+000178220414       COPY CXPDATUM IN QCBLLECPY.
+000179220414
+000180220414      *----------------------------------------------------------------
+000181220429      *>   Create one time stored procedure SP_CNTLST
+000183220414      *----------------------------------------------------------------
+000184220414       CREATE-ACTCOUNT-SP SECTION.
+000185220414
+000186220418       CREATE-ACTCOUNT-SP-00.
+000187220429           MOVE      "SP_CNTLST"
+000188220418                                     TO  H-TBL-TBLNAME
+000189220418           MOVE      "CREATE SP"     TO  H-TBL-FUNCTION
+000190220418           MOVE      "Create new stored procedure"
+000191220418                                     TO  H-TBL-OPERATION
+000192220419
+000216220418       CREATE-ACTCOUNT-SP-02.
+000218220414
+000219220418           INITIALIZE  H-TBL-RC
+000220220418                       H-TBL-RCMSG
+000221220418                       .
+000222220414           MOVE ZEROES TO SQLCODE.
+000223220414
+000224220414           EXEC SQL
+000225220414
+000226220512             CREATE PROCEDURE ELSDB090/SP_CNTLST(
+000227220414               IN LID BIGINT)
+000228220414               LANGUAGE SQL
+000229220429               SPECIFIC SP_CNTLST
+000230220414               NOT DETERMINISTIC
+000231220414               MODIFIES SQL DATA
+000232220414               CALLED ON NULL INPUT
+000233220414               SET OPTION  ALWBLK = *ALLREAD ,
+000234220414               ALWCPYDTA = *OPTIMIZE ,
+000235220414               COMMIT = *NONE ,
+000236220414               DECRESULT = (31, 31, 00) ,
+000237220414               DYNDFTCOL = *NO ,
+000238220414               DYNUSRPRF = *USER ,
+000239220414               SRTSEQ = *HEX
+000240220429
+000241220429               BEGIN
+000242220429               DECLARE X INTEGER ;
+000243220429               DECLARE XLNR INTEGER ;
+000245220429               DECLARE XDAK NUMERIC ( 15 , 4 ) ;
+000246220429               DECLARE XBES NUMERIC ( 9 , 2 ) ;
+000247220429               DECLARE SORT_BY NUMERIC (2) ;
+000248220429
+000249220429               SET X = 1 ;
+000250220512               SET XLNR = (SELECT WAREHOUSE_ID FROM ELSDB090/O_INVLIST
+000251220429                                      WHERE INVLIST_ID = LID ) ;
+000252220429
+000253220512               SET SORT_BY = (SELECT SORT_BY FROM ELSDB090/O_INVLIST
+000254220429                                      WHERE INVLIST_ID = LID ) ;
+000255220429               FOR V CURSOR FOR
+000256220429                              SELECT ID as xID, OEM as xOEM,
+000257220429                              TNR AS XTNR , PLACE AS XPLACE
+000258220512                              FROM ELSDB090/O_INVPART WHERE
+000259220429                              INVLIST_ID = LID ORDER BY
+000260220511                              CASE WHEN SORT_BY = 0 THEN TNR END,        KD02
+000261220511                              CASE WHEN SORT_BY = 1 THEN PLACE END       KD02
+000262220414               DO
+000263220512                              SET XDAK = ( SELECT DAK FROM
+000264220512                             APDB090/E_ETSTAMM WHERE LNR = XLNR AND
+000265220512                              TNR = XTNR AND HERST = XOEM ) ;
+000266220414
+000267220512                              SET XBES = ( SELECT AKTBES FROM
+000268220512                              APDB090/E_ETSTAMM WHERE LNR = XLNR AND
+000269220512                              TNR = XTNR AND HERST = XOEM ) ;
+000270220414
+000271220512                              UPDATE ELSDB090/O_INVPART SET CNT = X ,
+000272220512                            DAK = XDAK, OLD_STOCK = XBES WHERE ID = xID;
+000273220414
+000274220414                              SET X = X + 1 ;
+000275220414               END FOR ;
+000276220414               END
+000277220414           END-EXEC.
+000278220414
+000279220414           MOVE      SQLCODE         TO  H-TBL-RC.
+000280220414
+000281220419           IF   SQLCODE  EQUAL  ZEROES
+000282220419                MOVE      'Y'             TO  OUT-AX-CNTLST
+000283220418                MOVE      Z-SP-CRT        TO  H-TBL-RCMSG
+000284220419           ELSE
+000285220419                IF   SQLCODE = -454
+000286220419                     MOVE      'N'             TO  OUT-AX-CNTLST
+000287220419                     MOVE      Z-SP-EXISTS     TO  H-TBL-RCMSG
+000288220419                ELSE
+000289220419                     MOVE      'N'             TO  OUT-AX-CNTLST
+000291220419                     MOVE      Z-SP-ERR        TO  H-TBL-RCMSG
+000294220414           END-IF.
+000295220419
+000296220419           PERFORM   INSERT-TBLLOG-TABLE.
+000297220414
+000324220419       CREATE-ACTCOUNT-SP-EXIT.
+000325220419           EXIT.
+000326220414
+000327220414      *--------------------------------------------
+000328220414      *>   Insert Data in O-TBLLOG table
+000329220414      *--------------------------------------------
+000330220414       INSERT-TBLLOG-TABLE SECTION.
+000331220414       INSERT-TBLLOG-TABLE-00.
+000332220414
+000333220414           MOVE ZEROES TO SQLCODE.
+000334220414           EXEC SQL
+000335220414             INSERT INTO O_TBLLOG
+000336220414                  (TBLNAME
+000337220414                  ,FUNCTION
+000338220414                  ,RC
+000339220414                  ,RCMSG
+000340220414                  ,LOGIN
+000341220414                  ,OPERATION
+000342220414                  )
+000343220414             VALUES
+000344220414                  (:H-TBL-TBLNAME
+000345220414                  ,:H-TBL-FUNCTION
+000346220414                  ,:H-TBL-RC
+000347220414                  ,:H-TBL-RCMSG
+000348220414                  ,:H-TBL-USER
+000349220414                  ,:H-TBL-OPERATION
+000350220414                  )
+000351220414           END-EXEC.
+000352220414           IF  SQLCODE  NOT = ZEROES
+000353220414              MOVE "00002"  TO  OUT-AX-RC
+000354220414              MOVE "Insert in O_TBLLOG table failed"
+000355220414                               TO  OUT-AX-RCMSG
+000356220414           END-IF.
+000357220414       INSERT-TBLLOG-TABLE-EXIT.
+000358220414           EXIT.
