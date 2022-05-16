@@ -127,40 +127,41 @@
 000129220414       01  H-SP-SCHEMA                  PIC X(10).
 000130220516       01  H-SP-SCHEMA1                 PIC X(10).
 000131220516      * GIT changes
-000132220414           EXEC SQL
-000133220414                END   DECLARE SECTION
-000134220414           END-EXEC.
-000135220414
+000132220516
+000133220414           EXEC SQL
+000134220414                END   DECLARE SECTION
+000135220414           END-EXEC.
 000136220414
-000137220414      *****************************************************************
-000138220414      *           *****   Linkage Variables   *****                   *
-000139220414      *****************************************************************
-000140220414       LINKAGE  SECTION.
-000141220414
-000142220414       01 OUT-AX-RC                          PIC X(005).
-000143220414       01 OUT-AX-RCMSG                       PIC X(100).
-000144220414       01 OUT-AX-USER                        PIC X(010).
-000145220414       01 IN-AX-DTALIB                       PIC X(010).
-000146220414       01 IN-AX-SCHEMA                       PIC X(010).
-000147220414
-000148220414       PROCEDURE DIVISION USING OUT-AX-RC
-000149220414                                OUT-AX-RCMSG
-000150220414                                OUT-AX-USER
-000151220414                                IN-AX-DTALIB
-000152220414                                IN-AX-SCHEMA
-000153220414                                .
-000154220414
-000155220414       S   SECTION.
-000156220414       S01.
-000157220414           PERFORM   X01-DATUM.
-000158220414
-000159220414       S02.
-000160220414           INITIALIZE  H-TBL-FUNCTION
-000161220414                       H-TBL-OPERATION
-000162220414                       H-TBL-USER
-000163220414                       H-TBL-CREATED-TS
-000164220414                       .
-000165220414
+000137220414
+000138220414      *****************************************************************
+000139220414      *           *****   Linkage Variables   *****                   *
+000140220414      *****************************************************************
+000141220414       LINKAGE  SECTION.
+000142220414
+000143220414       01 OUT-AX-RC                          PIC X(005).
+000144220414       01 OUT-AX-RCMSG                       PIC X(100).
+000145220414       01 OUT-AX-USER                        PIC X(010).
+000146220414       01 IN-AX-DTALIB                       PIC X(010).
+000147220414       01 IN-AX-SCHEMA                       PIC X(010).
+000148220414
+000149220414       PROCEDURE DIVISION USING OUT-AX-RC
+000150220414                                OUT-AX-RCMSG
+000151220414                                OUT-AX-USER
+000152220414                                IN-AX-DTALIB
+000153220414                                IN-AX-SCHEMA
+000154220414                                .
+000155220414
+000156220414       S   SECTION.
+000157220414       S01.
+000158220414           PERFORM   X01-DATUM.
+000159220414
+000160220414       S02.
+000161220414           INITIALIZE  H-TBL-FUNCTION
+000162220414                       H-TBL-OPERATION
+000163220414                       H-TBL-USER
+000164220414                       H-TBL-CREATED-TS
+000165220414                       .
+000166220414
 000170220414           MOVE       IN-AX-DTALIB        TO  H-SP-DTALIB.
 000171220414           MOVE       IN-AX-SCHEMA        TO  H-SP-SCHEMA.
 000172220414
